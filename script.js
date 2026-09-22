@@ -1944,3 +1944,99 @@ updateModeUI();
 renderHistory();
 
 calculate();
+
+/* =========================
+   الحاسبة العادية
+========================= */
+
+(function () {
+
+    const result = document.getElementById("calculatorResult");
+    const history = document.getElementById("calculatorHistory");
+    const buttons = document.querySelectorAll(".calc-btn");
+
+    if (!result || !history || !buttons.length) return;
+
+    let expression = "";
+
+    function updateDisplay() {
+        result.textContent = expression || "0";
+    }
+
+    function calculate() {
+
+        if (!expression) return;
+
+        try {
+
+            let exp = expression
+                .replace(/×/g, "*")
+                .replace(/÷/g, "/")
+                .replace(/%/g, "/100");
+
+            if (!/^[0-9+\-*/().\s]+$/.test(exp)) {
+                throw new Error("Invalid");
+            }
+
+            const answer = Function(
+                `"use strict"; return (${exp})`
+            )();
+
+            if (!Number.isFinite(answer)) {
+                throw new Error("Invalid");
+            }
+
+            history.textContent = expression + " =";
+
+            expression = String(
+                Number.isInteger(answer)
+                    ? answer
+                    : Number(answer.toFixed(10))
+            );
+
+            updateDisplay();
+
+        } catch (error) {
+
+            history.textContent = expression;
+            result.textContent = "خطأ";
+            expression = "";
+
+        }
+    }
+
+    buttons.forEach(button => {
+
+        button.addEventListener("click", function () {
+
+            const value = this.dataset.value;
+            const action = this.dataset.action;
+
+            if (action === "clear") {
+                expression = "";
+                history.textContent = "";
+                updateDisplay();
+                return;
+            }
+
+            if (action === "delete") {
+                expression = expression.slice(0, -1);
+                updateDisplay();
+                return;
+            }
+
+            if (action === "equals") {
+                calculate();
+                return;
+            }
+
+            if (value) {
+                expression += value;
+                updateDisplay();
+            }
+
+        });
+
+    });
+
+})();
