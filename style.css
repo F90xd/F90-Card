@@ -3,12 +3,10 @@
 }
 
 :root {
-
     --bg: #07080c;
     --card: #111319;
     --card2: #0b0d12;
     --input: #090b0f;
-
     --line: #242832;
 
     --text: #f4f5f7;
@@ -24,9 +22,7 @@
         0 18px 50px rgba(0,0,0,.18);
 }
 
-
 body.light {
-
     --bg: #f1f3f6;
     --card: #ffffff;
     --card2: #f5f6f8;
@@ -41,14 +37,11 @@ body.light {
         0 15px 40px rgba(30,35,45,.08);
 }
 
-
 html {
     scroll-behavior: smooth;
 }
 
-
 body {
-
     margin: 0;
 
     background:
@@ -57,13 +50,11 @@ body {
             rgba(225,38,54,.13),
             transparent 30%
         ),
-
         radial-gradient(
             circle at 0% 80%,
             rgba(91,42,135,.07),
             transparent 25%
         ),
-
         var(--bg);
 
     color: var(--text);
@@ -80,34 +71,32 @@ body {
         color .25s ease;
 }
 
-
 button,
 input,
 select {
     font: inherit;
 }
 
-
 button {
     cursor: pointer;
 }
 
+input,
+select,
+button {
+    -webkit-tap-highlight-color: transparent;
+}
 
 .app {
     min-height: 100vh;
 }
 
 
-/* =========================================================
-   HEADER
-========================================================= */
+/* HEADER */
 
 .header {
-
     position: sticky;
-
     top: 0;
-
     z-index: 100;
 
     min-height: 78px;
@@ -117,9 +106,7 @@ button {
         max(14px, calc((100vw - 1100px) / 2));
 
     display: flex;
-
     align-items: center;
-
     gap: 13px;
 
     background:
@@ -132,26 +119,21 @@ button {
     border-bottom:
         1px solid var(--line);
 
-    backdrop-filter:
-        blur(18px);
+    backdrop-filter: blur(18px);
 }
 
-
 .vip-logo {
-
     width: 51px;
     height: 51px;
 
     flex: 0 0 51px;
 
     display: grid;
-
     place-items: center;
 
     border-radius: 15px;
 
     font-size: 13px;
-
     font-weight: 900;
 
     background:
@@ -168,47 +150,30 @@ button {
         rgba(225,38,54,.22);
 }
 
-
 .header-text {
     flex: 1;
 }
 
-
 .developer {
-
     color: var(--red);
-
     font-size: 10px;
-
     font-weight: 900;
-
     letter-spacing: 2px;
 }
 
-
 .header h1 {
-
     margin: 0;
-
-    font-size:
-        clamp(20px,4vw,29px);
-
+    font-size: clamp(20px,4vw,29px);
     line-height: 1.2;
 }
 
-
 .header p {
-
     margin: 3px 0 0;
-
     color: var(--muted);
-
     font-size: 11px;
 }
 
-
 .theme-toggle {
-
     width: 43px;
     height: 43px;
 
@@ -218,17 +183,12 @@ button {
     border-radius: 12px;
 
     color: var(--text);
-
     background: var(--card);
 
     font-size: 18px;
-
-    transition: .2s;
 }
 
-
 .theme-toggle:hover {
-
     border-color:
         rgba(225,38,54,.55);
 
@@ -237,12 +197,9 @@ button {
 }
 
 
-/* =========================================================
-   MAIN
-========================================================= */
+/* MAIN */
 
 main {
-
     width:
         min(
             1100px,
@@ -256,15 +213,11 @@ main {
 }
 
 
-/* =========================================================
-   CARDS
-========================================================= */
+/* CARDS */
 
 .card,
 .contact-card {
-
     padding: 20px;
-
     margin-bottom: 14px;
 
     background: var(--card);
@@ -282,31 +235,22 @@ main {
 }
 
 
-/* =========================================================
-   SECTION TITLE
-========================================================= */
+/* TITLES */
 
 .section-title {
-
     display: flex;
-
     align-items: center;
-
     gap: 12px;
-
     margin-bottom: 20px;
 }
 
-
 .section-title > span {
-
     width: 39px;
     height: 39px;
 
     flex: 0 0 39px;
 
     display: grid;
-
     place-items: center;
 
     border-radius: 11px;
@@ -321,79 +265,54 @@ main {
         rgba(225,38,54,.20);
 
     font-size: 11px;
-
     font-weight: 900;
 }
 
-
 .section-title h2 {
-
     margin: 0;
-
     font-size: 18px;
 }
 
-
 .section-title p {
-
     margin: 2px 0 0;
-
     color: var(--muted);
-
     font-size: 10px;
 }
 
 
-/* =========================================================
-   FIELDS
-========================================================= */
+/* FIELDS */
 
 .grid-2,
 .grid-3 {
-
     display: grid;
-
     gap: 13px;
 }
 
-
 .grid-2 {
-
     grid-template-columns:
         repeat(2,minmax(0,1fr));
 }
 
-
 .grid-3 {
-
     grid-template-columns:
         repeat(3,minmax(0,1fr));
 }
-
 
 .field {
     min-width: 0;
 }
 
-
 .field label {
-
     display: block;
-
     color: var(--text);
-
     font-size: 12px;
-
     font-weight: 800;
 }
-
 
 .field input,
 .field select,
 .search-row input {
-
     width: 100%;
-
     height: 48px;
 
     margin-top: 7px;
@@ -409,7 +328,6 @@ main {
     outline: none;
 
     color: var(--text);
-
     background: var(--input);
 
     direction: rtl;
@@ -417,11 +335,9 @@ main {
     transition: .18s ease;
 }
 
-
 .field input:focus,
 .field select:focus,
 .search-row input:focus {
-
     border-color:
         rgba(225,38,54,.70);
 
@@ -430,27 +346,18 @@ main {
         rgba(225,38,54,.08);
 }
 
-
 .field small {
-
     display: block;
-
     margin-top: 5px;
-
     color: var(--muted);
-
     font-size: 9px;
 }
 
 
-/* =========================================================
-   STATUS
-========================================================= */
+/* STATUS */
 
 .status {
-
     margin-top: 12px;
-
     padding: 10px 13px;
 
     border-radius: 10px;
@@ -463,37 +370,26 @@ main {
         rgba(41,200,138,.16);
 
     color: #68dfad;
-
     font-size: 11px;
 }
-
 
 .hidden {
     display: none !important;
 }
 
 
-/* =========================================================
-   MODE
-========================================================= */
+/* MODE */
 
 .mode-box {
-
     display: grid;
-
-    grid-template-columns:
-        1fr 1fr;
+    grid-template-columns: 1fr 1fr;
 
     gap: 10px;
-
     margin-top: 15px;
 }
 
-
 .mode-option {
-
     padding: 14px;
-
     min-height: 76px;
 
     border:
@@ -508,9 +404,7 @@ main {
     transition: .18s ease;
 }
 
-
 .mode-option.active {
-
     border-color:
         rgba(225,38,54,.65);
 
@@ -518,51 +412,34 @@ main {
         rgba(225,38,54,.07);
 }
 
-
 .mode-option input {
-
     width: auto;
-
     height: auto;
-
     margin: 0 0 7px;
-
     accent-color: var(--red);
 }
 
-
 .mode-option strong {
-
     display: block;
-
     font-size: 12px;
 }
 
-
 .mode-option small {
-
     display: block;
-
     color: var(--muted);
-
     font-size: 9px;
 }
 
 
-/* =========================================================
-   NOTICE
-========================================================= */
+/* NOTICE */
 
 .notice {
-
     margin-top: 13px;
-
     padding: 11px 13px;
 
     border-radius: 11px;
 
     color: var(--muted);
-
     background: var(--card2);
 
     border:
@@ -571,18 +448,14 @@ main {
     font-size: 10px;
 }
 
-
 .notice strong {
     color: #ff6674;
 }
 
 
-/* =========================================================
-   TRANSITIONS
-========================================================= */
+/* TRANSITIONS */
 
 #transitionList {
-
     display: grid;
 
     grid-template-columns:
@@ -593,9 +466,7 @@ main {
     margin-top: 11px;
 }
 
-
 .transition {
-
     padding: 13px;
 
     background: var(--card2);
@@ -606,11 +477,8 @@ main {
     border-radius: 13px;
 }
 
-
 .first-transition {
-
-    grid-column:
-        1 / -1;
+    grid-column: 1 / -1;
 
     border-color:
         rgba(225,38,54,.38);
@@ -623,47 +491,32 @@ main {
         );
 }
 
-
 .transition-head {
-
     display: flex;
-
     justify-content: space-between;
-
     align-items: center;
 
     gap: 8px;
-
     margin-bottom: 8px;
 }
 
-
 .transition-head span {
-
     color: #ff6674;
-
     font-size: 10px;
-
     font-weight: 800;
 }
 
-
 .transition-head strong {
-
     font-size: 12px;
 }
 
-
 .transition input {
-
     width: 100%;
-
     height: 46px;
 
     padding: 0 12px;
 
     color: var(--text);
-
     background: var(--input);
 
     border:
@@ -674,66 +527,45 @@ main {
     outline: none;
 }
 
-
 .transition input:focus {
-
     border-color:
         rgba(225,38,54,.65);
 }
 
-
 .automatic-title {
-
-    grid-column:
-        1 / -1;
+    grid-column: 1 / -1;
 
     display: flex;
-
     justify-content: space-between;
-
     align-items: center;
 
     padding:
         7px 4px 1px;
 }
 
-
 .automatic-title span {
-
     color: var(--green);
-
     font-size: 11px;
-
     font-weight: 900;
 }
 
-
 .automatic-title small {
-
     color: var(--muted);
-
     font-size: 9px;
 }
 
-
 .automatic-transition {
-
     opacity: .94;
 }
 
-
 .auto-transition-value {
-
     min-height: 46px;
 
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
 
     gap: 10px;
-
     padding: 0 12px;
 
     border-radius: 10px;
@@ -744,34 +576,22 @@ main {
         1px solid var(--line);
 }
 
-
 .auto-transition-value span {
-
     color: var(--muted);
-
     font-size: 10px;
 }
 
-
 .auto-transition-value strong {
-
     color: var(--green);
-
     font-size: 14px;
 }
 
-
 .current-lock-card {
-
-    grid-column:
-        1 / -1;
+    grid-column: 1 / -1;
 }
 
-
 .auto-lock-big {
-
     padding: 18px;
-
     text-align: center;
 
     border-radius: 12px;
@@ -782,38 +602,26 @@ main {
         1px solid var(--line);
 }
 
-
 .auto-lock-big small,
 .auto-lock-big span {
-
     display: block;
-
     color: var(--muted);
-
     font-size: 9px;
 }
 
-
 .auto-lock-big strong {
-
     display: block;
-
     margin: 3px 0;
 
     font-size: 28px;
-
     color: var(--green);
 }
 
 
-/* =========================================================
-   LOCK
-========================================================= */
+/* LOCK */
 
 .lock-box {
-
     margin-top: 13px;
-
     padding: 14px;
 
     border:
@@ -824,43 +632,29 @@ main {
     background: var(--card2);
 }
 
-
 .lock-header {
-
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
 
     gap: 15px;
 }
 
-
 .lock-header strong {
-
     display: block;
-
     font-size: 12px;
 }
 
-
 .lock-header small {
-
     display: block;
-
     color: var(--muted);
-
     font-size: 9px;
 }
 
 
-/* =========================================================
-   SWITCH
-========================================================= */
+/* SWITCH */
 
 .switch {
-
     position: relative;
 
     width: 48px;
@@ -869,20 +663,14 @@ main {
     flex: 0 0 48px;
 }
 
-
 .switch input {
-
     opacity: 0;
-
     width: 0;
     height: 0;
 }
 
-
 .switch span {
-
     position: absolute;
-
     inset: 0;
 
     border-radius: 20px;
@@ -892,9 +680,7 @@ main {
     transition: .2s;
 }
 
-
 .switch span:before {
-
     content: "";
 
     position: absolute;
@@ -912,34 +698,25 @@ main {
     transition: .2s;
 }
 
-
 .switch input:checked + span {
-
     background: var(--red);
 }
 
-
 .switch input:checked + span:before {
-
     transform:
         translateX(-21px);
 }
 
-
 .auto-value {
-
     margin-top: 13px;
 
     display: grid;
-
     grid-template-columns: 1fr 100px;
 
     gap: 9px;
 }
 
-
 .auto-value div {
-
     padding: 11px;
 
     border:
@@ -952,37 +729,24 @@ main {
     text-align: center;
 }
 
-
 .auto-value span {
-
     display: block;
-
     color: var(--muted);
-
     font-size: 9px;
 }
 
-
 .auto-value strong {
-
     display: block;
-
     margin-top: 2px;
-
     color: var(--green);
-
     font-size: 15px;
 }
 
 
-/* =========================================================
-   RESULT
-========================================================= */
+/* RESULT */
 
 .result-card {
-
     margin: 16px 0;
-
     padding: 20px;
 
     border:
@@ -997,43 +761,29 @@ main {
             rgba(225,38,54,.14),
             transparent 45%
         ),
-
         var(--card);
 
     box-shadow: var(--shadow);
 }
 
-
 .result-title {
-
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
 }
 
-
 .result-title small {
-
     color: var(--muted);
-
     font-size: 10px;
 }
 
-
 .result-title h2 {
-
     margin: 1px 0 0;
-
     font-size: 17px;
 }
 
-
 .multiplier-badge {
-
     min-width: 50px;
-
     padding: 6px 10px;
 
     text-align: center;
@@ -1052,55 +802,37 @@ main {
     font-weight: 900;
 }
 
-
 .hero-result {
-
-    padding:
-        24px 10px;
-
+    padding: 24px 10px;
     text-align: center;
 }
 
-
 .hero-result small {
-
     display: block;
-
     color: var(--muted);
-
     font-size: 10px;
 }
 
-
 .hero-result strong {
-
     display: block;
-
     margin-top: 2px;
 
     font-size:
         clamp(38px,8vw,60px);
 
     line-height: 1.15;
-
     font-weight: 900;
 }
 
-
 .hero-result span {
-
     color: var(--muted);
-
     font-size: 10px;
 }
 
 
-/* =========================================================
-   RESULT BOXES
-========================================================= */
+/* RESULT BOXES */
 
 .result-grid {
-
     display: grid;
 
     grid-template-columns:
@@ -1109,11 +841,8 @@ main {
     gap: 9px;
 }
 
-
 .result-box {
-
     min-height: 79px;
-
     padding: 12px;
 
     background: var(--card2);
@@ -1124,52 +853,35 @@ main {
     border-radius: 12px;
 }
 
-
 .result-box small {
-
     display: block;
-
     margin-bottom: 4px;
 
     color: var(--muted);
-
     font-size: 9px;
 }
 
-
 .result-box strong {
-
     display: block;
-
     font-size: 15px;
-
     overflow-wrap: anywhere;
 }
 
-
 .result-box.highlight {
-
     border-color:
         rgba(225,38,54,.35);
 }
 
-
 .result-box.support strong {
-
     color: #ff6976;
 }
 
 
-/* =========================================================
-   FORMULA
-========================================================= */
+/* FORMULA */
 
 .formula {
-
     display: flex;
-
     align-items: center;
-
     justify-content: center;
 
     flex-wrap: wrap;
@@ -1177,7 +889,6 @@ main {
     gap: 12px;
 
     margin-top: 13px;
-
     padding: 13px;
 
     border:
@@ -1190,43 +901,27 @@ main {
     text-align: center;
 }
 
-
 .formula div span {
-
     display: block;
-
     color: var(--muted);
-
     font-size: 8px;
 }
 
-
 .formula div b {
-
     display: block;
-
     margin-top: 2px;
-
     font-size: 12px;
 }
 
-
 .formula i {
-
     color: #59606c;
-
     font-style: normal;
-
     font-weight: 900;
 }
 
-
 .support-formula {
-
     display: flex;
-
     align-items: center;
-
     justify-content: center;
 
     flex-wrap: wrap;
@@ -1234,11 +929,9 @@ main {
     gap: 8px;
 
     margin-top: 8px;
-
     padding: 9px;
 
     color: var(--muted);
-
     font-size: 9px;
 
     background: var(--card2);
@@ -1246,21 +939,15 @@ main {
     border-radius: 9px;
 }
 
-
 .support-formula strong {
-
     color: var(--text);
-
     font-size: 10px;
 }
 
 
-/* =========================================================
-   BUTTONS
-========================================================= */
+/* BUTTONS */
 
 .actions {
-
     display: grid;
 
     grid-template-columns:
@@ -1271,9 +958,7 @@ main {
     margin: 14px 0;
 }
 
-
 .btn {
-
     height: 51px;
 
     border-radius: 12px;
@@ -1290,16 +975,11 @@ main {
         filter .15s;
 }
 
-
 .btn:active {
-
-    transform:
-        scale(.98);
+    transform: scale(.98);
 }
 
-
 .btn.primary {
-
     border: 0;
 
     background:
@@ -1310,29 +990,20 @@ main {
         );
 }
 
-
 .btn.secondary {
-
     color: var(--text);
-
     background: var(--card);
 }
 
-
 .btn.dark {
-
     color: var(--text);
-
     background: var(--card2);
 }
 
 
-/* =========================================================
-   HISTORY
-========================================================= */
+/* HISTORY */
 
 .search-row {
-
     display: grid;
 
     grid-template-columns:
@@ -1343,14 +1014,11 @@ main {
     margin-bottom: 12px;
 }
 
-
 .search-row input {
     margin: 0;
 }
 
-
 #clearHistory {
-
     padding: 0 14px;
 
     border:
@@ -1367,19 +1035,15 @@ main {
     font-weight: 700;
 }
 
-
 .history-item {
-
     display: flex;
 
     align-items: center;
-
     justify-content: space-between;
 
     gap: 10px;
 
     padding: 13px;
-
     margin-bottom: 8px;
 
     background: var(--card2);
@@ -1390,37 +1054,24 @@ main {
     border-radius: 12px;
 }
 
-
 .history-main strong {
-
     display: block;
-
     font-size: 12px;
 }
 
-
 .history-main span {
-
     display: block;
-
     color: var(--muted);
-
     font-size: 9px;
 }
 
-
 .history-buttons {
-
     display: flex;
-
     gap: 6px;
 }
 
-
 .history-buttons button {
-
-    padding:
-        7px 10px;
+    padding: 7px 10px;
 
     border:
         1px solid var(--line);
@@ -1428,37 +1079,26 @@ main {
     border-radius: 8px;
 
     color: var(--text);
-
     background: var(--card);
 
     font-size: 10px;
 }
 
-
 .history-buttons .delete {
-
     color: #ff6876;
 }
 
-
 .empty {
-
     padding: 25px 10px;
-
     color: var(--muted);
-
     text-align: center;
-
     font-size: 11px;
 }
 
 
-/* =========================================================
-   TABLE
-========================================================= */
+/* TABLE */
 
 .table-wrap {
-
     overflow-x: auto;
 
     border:
@@ -1466,84 +1106,60 @@ main {
 
     border-radius: 12px;
 
-    -webkit-overflow-scrolling:
-        touch;
+    -webkit-overflow-scrolling: touch;
 }
-
 
 table {
-
     width: 100%;
-
     min-width: 560px;
 
-    border-collapse:
-        collapse;
+    border-collapse: collapse;
 }
-
 
 th,
 td {
-
-    padding:
-        11px 9px;
+    padding: 11px 9px;
 
     border-bottom:
         1px solid var(--line);
 
     text-align: center;
 
-    white-space:
-        nowrap;
+    white-space: nowrap;
 
     font-size: 10px;
 }
 
-
 th {
-
     color: #ff6674;
-
     background: var(--card2);
 }
-
 
 tr:last-child td {
     border-bottom: 0;
 }
-
 
 td:first-child {
     font-weight: 900;
 }
 
 
-/* =========================================================
-   STATS
-========================================================= */
+/* STATS */
 
 .stats-section {
-
     margin-bottom: 14px;
 }
 
-
 .stats-toggle {
-
     width: 100%;
-
     min-height: 62px;
 
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
 
     gap: 15px;
-
-    padding:
-        12px 16px;
+    padding: 12px 16px;
 
     border:
         1px solid var(--line);
@@ -1551,7 +1167,6 @@ td:first-child {
     border-radius: 16px;
 
     color: var(--text);
-
     background: var(--card);
 
     box-shadow: var(--shadow);
@@ -1559,39 +1174,28 @@ td:first-child {
     text-align: right;
 }
 
-
 .stats-toggle span {
     display: block;
 }
 
-
 .stats-toggle b {
-
     display: block;
-
     font-size: 13px;
 }
 
-
 .stats-toggle small {
-
     display: block;
-
     margin-top: 1px;
 
     color: var(--muted);
-
     font-size: 9px;
 }
 
-
 #statsArrow {
-
     width: 32px;
     height: 32px;
 
     display: grid;
-
     place-items: center;
 
     border-radius: 9px;
@@ -1604,11 +1208,8 @@ td:first-child {
     font-size: 18px;
 }
 
-
 .stats-panel {
-
     margin-top: 9px;
-
     padding: 12px;
 
     border:
@@ -1622,9 +1223,7 @@ td:first-child {
         statsOpen .2s ease;
 }
 
-
 @keyframes statsOpen {
-
     from {
         opacity: 0;
         transform: translateY(-5px);
@@ -1636,9 +1235,7 @@ td:first-child {
     }
 }
 
-
 .stats-grid {
-
     display: grid;
 
     grid-template-columns:
@@ -1647,11 +1244,8 @@ td:first-child {
     gap: 9px;
 }
 
-
 .stat-box {
-
     min-height: 95px;
-
     padding: 13px;
 
     border:
@@ -1664,56 +1258,38 @@ td:first-child {
     text-align: center;
 }
 
-
 .stat-box span {
-
     display: block;
-
     color: var(--muted);
-
     font-size: 9px;
 }
 
-
 .stat-box strong {
-
     display: block;
-
     margin-top: 7px;
 
     font-size: 19px;
-
     overflow-wrap: anywhere;
 }
 
-
 .stat-box small {
-
     display: block;
-
     color: var(--muted);
-
     font-size: 8px;
 }
 
 
-/* =========================================================
-   CALCULATOR
-========================================================= */
+/* CALCULATOR */
 
 .calculator-card {
     margin-top: 14px;
 }
 
-
 .calculator {
-
     width: 100%;
-
     max-width: 430px;
 
     margin: 20px auto 0;
-
     padding: 12px;
 
     border:
@@ -1724,22 +1300,16 @@ td:first-child {
     background: var(--card2);
 }
 
-
 .calculator-display {
-
     min-height: 125px;
 
-    padding:
-        18px 16px;
+    padding: 18px 16px;
 
     display: flex;
-
     flex-direction: column;
-
     justify-content: flex-end;
 
     text-align: left;
-
     direction: ltr;
 
     overflow: hidden;
@@ -1752,9 +1322,7 @@ td:first-child {
     background: var(--input);
 }
 
-
 #calculatorHistory {
-
     min-height: 25px;
 
     color: var(--muted);
@@ -1762,15 +1330,11 @@ td:first-child {
     font-size: 14px;
 
     overflow: hidden;
-
     white-space: nowrap;
-
     text-overflow: ellipsis;
 }
 
-
 #calculatorResult {
-
     color: var(--text);
 
     font-size: 39px;
@@ -1778,15 +1342,11 @@ td:first-child {
     font-weight: 700;
 
     overflow: hidden;
-
     white-space: nowrap;
-
     text-overflow: ellipsis;
 }
 
-
 .calculator-buttons {
-
     margin-top: 12px;
 
     display: grid;
@@ -1797,9 +1357,7 @@ td:first-child {
     gap: 9px;
 }
 
-
 .calc-btn {
-
     min-height: 62px;
 
     border:
@@ -1807,13 +1365,11 @@ td:first-child {
 
     border-radius: 15px;
 
-    background:
-        var(--card);
+    background: var(--card);
 
     color: var(--text);
 
     font-size: 21px;
-
     font-weight: 700;
 
     cursor: pointer;
@@ -1823,39 +1379,24 @@ td:first-child {
         filter .15s;
 }
 
-
 .calc-btn:active {
-
-    transform:
-        scale(.95);
+    transform: scale(.95);
 }
-
 
 .calc-btn:hover {
-
-    filter:
-        brightness(1.12);
+    filter: brightness(1.12);
 }
-
 
 .calc-btn.function {
-
-    background:
-        #303540;
+    background: #303540;
 }
 
-
 .calc-btn.operator {
-
-    background:
-        #343944;
-
+    background: #343944;
     color: #ff6674;
 }
 
-
 .calc-btn.equals {
-
     background:
         linear-gradient(
             145deg,
@@ -1867,40 +1408,24 @@ td:first-child {
 }
 
 
-.calc-btn.double-zero {
-
-    font-size: 18px;
-}
-
-
-/* =========================================================
-   CONTACT
-========================================================= */
+/* CONTACT */
 
 .contact-card {
-
     background:
         radial-gradient(
             circle at 100% 0%,
             rgba(213,173,98,.08),
             transparent 35%
         ),
-
         var(--card);
 }
 
-
 .contact-card h2 {
-
-    margin:
-        0 0 14px;
-
+    margin: 0 0 14px;
     font-size: 18px;
 }
 
-
 .contact-grid {
-
     display: grid;
 
     grid-template-columns:
@@ -1909,9 +1434,7 @@ td:first-child {
     gap: 8px;
 }
 
-
 .contact-grid div {
-
     padding: 11px;
 
     background: var(--card2);
@@ -1922,29 +1445,19 @@ td:first-child {
     border-radius: 10px;
 }
 
-
 .contact-grid span {
-
     display: block;
-
     color: var(--muted);
-
     font-size: 9px;
 }
 
-
 .contact-grid strong {
-
     display: block;
-
     margin-top: 3px;
-
     font-size: 11px;
 }
 
-
 .phones {
-
     display: grid;
 
     grid-template-columns:
@@ -1955,9 +1468,7 @@ td:first-child {
     margin-top: 8px;
 }
 
-
 .phones div {
-
     padding: 10px;
 
     background: var(--card2);
@@ -1972,36 +1483,24 @@ td:first-child {
     font-size: 9px;
 }
 
-
 .phones strong {
-
     display: block;
-
     margin-top: 3px;
 
     color: var(--text);
-
     font-size: 11px;
 }
 
 
-/* =========================================================
-   FOOTER
-========================================================= */
+/* FOOTER */
 
 footer {
-
-    padding:
-        28px 15px 45px;
-
+    padding: 28px 15px 45px;
     text-align: center;
-
     color: var(--muted);
 }
 
-
 .footer-brand {
-
     margin-top: 5px;
 
     color: var(--text);
@@ -2012,329 +1511,225 @@ footer {
     font-weight: 900;
 }
 
-
 .instagram {
-
     margin-top: 5px;
-
     color: #ff6674;
-
     font-size: 10px;
 }
 
 
-/* =========================================================
-   TABLET
-========================================================= */
+/* TABLET */
 
 @media (max-width: 850px) {
 
     .grid-3 {
-
         grid-template-columns:
             repeat(2,minmax(0,1fr));
     }
-
 
     .result-grid {
-
         grid-template-columns:
             repeat(2,minmax(0,1fr));
     }
-
 
     .stats-grid {
-
         grid-template-columns:
             repeat(2,minmax(0,1fr));
     }
 
-
     .contact-grid {
-
         grid-template-columns:
             repeat(2,1fr);
     }
 
-
     .phones {
-
         grid-template-columns: 1fr;
     }
 }
 
 
-/* =========================================================
-   MOBILE
-========================================================= */
+/* MOBILE */
 
 @media (max-width: 600px) {
 
     .header {
-
-        padding:
-            10px 12px;
+        padding: 10px 12px;
     }
 
-
     .vip-logo {
-
         width: 44px;
         height: 44px;
-
         flex-basis: 44px;
-
         border-radius: 12px;
     }
 
-
     .header h1 {
-
         font-size: 19px;
     }
 
-
     .header p {
-
         font-size: 9px;
     }
 
-
     .theme-toggle {
-
         width: 40px;
         height: 40px;
     }
 
-
     main {
-
         width:
             calc(100% - 12px);
 
         padding-top: 10px;
     }
 
-
     .card,
     .contact-card,
     .result-card {
-
         padding: 15px;
-
         border-radius: 16px;
     }
 
-
     .grid-2,
     .grid-3 {
-
         grid-template-columns: 1fr;
     }
-
 
     .mode-box {
-
         grid-template-columns: 1fr;
     }
-
 
     #transitionList {
-
         grid-template-columns: 1fr;
     }
-
 
     .first-transition,
     .automatic-title,
     .current-lock-card {
-
         grid-column: auto;
     }
 
-
     .result-grid {
-
         grid-template-columns:
             repeat(2,1fr);
     }
 
-
     .result-box {
-
         min-height: 74px;
-
         padding: 10px;
     }
 
-
     .result-box strong {
-
         font-size: 13px;
     }
 
-
     .formula {
-
         gap: 7px;
     }
 
-
     .formula div b {
-
         font-size: 10px;
     }
 
-
     .support-formula {
-
         display: block;
-
         text-align: center;
     }
 
-
     .support-formula strong {
-
         display: block;
-
         margin-top: 3px;
     }
 
-
     .actions {
-
         grid-template-columns: 1fr;
     }
-
 
     .search-row {
-
         grid-template-columns: 1fr;
     }
 
-
     #clearHistory {
-
         height: 43px;
     }
 
-
     .history-item {
-
         flex-direction: column;
-
         align-items: stretch;
     }
 
-
     .history-buttons {
-
         width: 100%;
     }
 
-
     .history-buttons button {
-
         flex: 1;
     }
 
-
     .stats-grid {
-
         grid-template-columns:
             repeat(2,minmax(0,1fr));
     }
 
-
     .stat-box {
-
         min-height: 85px;
-
         padding: 10px;
     }
 
-
     .stat-box strong {
-
         font-size: 16px;
     }
 
-
     .auto-value {
-
         grid-template-columns: 1fr;
     }
 
-
     .contact-grid {
-
         grid-template-columns:
             repeat(2,1fr);
     }
 
-
     .phones {
-
         grid-template-columns: 1fr;
     }
 
-
     .calculator {
-
         padding: 9px;
     }
 
-
     .calculator-buttons {
-
         gap: 7px;
     }
 
-
     .calc-btn {
-
         min-height: 58px;
-
         font-size: 20px;
-
         border-radius: 14px;
     }
 
-
     #calculatorResult {
-
         font-size: 31px;
     }
 }
 
 
-/* =========================================================
-   SMALL MOBILE
-========================================================= */
+/* SMALL MOBILE */
 
 @media (max-width: 380px) {
 
     .result-grid {
-
         grid-template-columns: 1fr;
     }
-
 
     .contact-grid {
-
         grid-template-columns: 1fr;
     }
-
 
     .stats-grid {
-
         grid-template-columns: 1fr;
     }
 
-
     .calc-btn {
-
         min-height: 54px;
     }
-       }
+    }
