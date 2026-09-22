@@ -1,671 +1,1920 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#08090d">
-    <title>مجلس القمة للشحن</title>
-    <link rel="stylesheet" href="style.css">
-</head>
+"use strict";
 
-<body>
+/* =========================================================
+   مجلس القمة للشحن
+   حاسبة VIP + سجل العملاء + الإحصائيات + الحاسبة العادية
+========================================================= */
 
-<div class="app">
 
-    <header class="header">
-        <div class="vip-logo">VIP</div>
+/* =========================================================
+   جدول VIP
+========================================================= */
 
-        <div class="header-text">
-            <div class="developer">F90</div>
-            <h1>مجلس القمة للشحن</h1>
-            <p>موقع خاص لوكالة مجلس القمة الأردنية</p>
+const VIP_TABLE = [
+    { level: 1,  total: 50000,       upgrade: 50000,       maintain: 30000 },
+    { level: 2,  total: 100000,      upgrade: 50000,       maintain: 30000 },
+    { level: 3,  total: 300000,      upgrade: 100000,      maintain: 90000 },
+    { level: 4,  total: 1000000,     upgrade: 800000,      maintain: 500000 },
+    { level: 5,  total: 3000000,     upgrade: 2000000,     maintain: 1300000 },
+    { level: 6,  total: 7000000,     upgrade: 4000000,     maintain: 2600000 },
+    { level: 7,  total: 14000000,    upgrade: 7000000,     maintain: 4500000 },
+    { level: 8,  total: 26000000,    upgrade: 12000000,    maintain: 7800000 },
+    { level: 9,  total: 42000000,    upgrade: 16000000,    maintain: 11000000 },
+    { level: 10, total: 62000000,    upgrade: 20000000,    maintain: 14000000 },
+    { level: 11, total: 102000000,   upgrade: 40000000,    maintain: 28000000 },
+    { level: 12, total: 220000000,   upgrade: 118000000,   maintain: 83000000 },
+    { level: 13, total: 430000000,   upgrade: 210000000,   maintain: 150000000 },
+    { level: 14, total: 820000000,   upgrade: 390000000,   maintain: 310000000 },
+    { level: 15, total: 1820000000,  upgrade: 1000000000,  maintain: 700000000 },
+    { level: 16, total: 3820000000,  upgrade: 2000000000,  maintain: 1400000000 },
+    { level: 17, total: 7382000000,  upgrade: 3500000000,  maintain: 3000000000 },
+    { level: 18, total: 11882000000, upgrade: 4500000000, maintain: 4000000000 },
+    { level: 19, total: 17382000000, upgrade: 5500000000, maintain: 5000000000 },
+    { level: 20, total: 27382000000, upgrade: 10000000000, maintain: 9000000000 }
+];
+
+
+/* =========================================================
+   التخزين
+========================================================= */
+
+const STORAGE_KEY = "majlis_alqimma_vip_records_v8";
+const THEME_KEY = "majlis_alqimma_theme_v2";
+
+
+/* =========================================================
+   اختصار
+========================================================= */
+
+const $ = id => document.getElementById(id);
+
+
+/* =========================================================
+   العناصر
+========================================================= */
+
+const clientName = $("clientName");
+const clientId = $("clientId");
+
+const currentVip = $("currentVip");
+const targetVip = $("targetVip");
+const multiplier = $("multiplier");
+
+const transitionArea = $("transitionArea");
+const transitionList = $("transitionList");
+
+const enableTargetLock = $("enableTargetLock");
+const targetLockBox = $("targetLockBox");
+const targetLockInput = $("targetLockInput");
+
+const autoLockValue = $("autoLockValue");
+const autoLockLevel = $("autoLockLevel");
+
+const supportRate = $("supportRate");
+const jodRate = $("jodRate");
+const usdRate = $("usdRate");
+
+const actualCharge = $("actualCharge");
+const reachPoints = $("reachPoints");
+const lockPoints = $("lockPoints");
+const totalVipPoints = $("totalVipPoints");
+const supportNeeded = $("supportNeeded");
+const jodTotal = $("jodTotal");
+const usdTotal = $("usdTotal");
+
+const resultTitle = $("resultTitle");
+const resultMultiplier = $("resultMultiplier");
+
+const formulaReach = $("formulaReach");
+const formulaLock = $("formulaLock");
+const formulaVip = $("formulaVip");
+const formulaMultiplier = $("formulaMultiplier");
+const formulaSupport = $("formulaSupport");
+
+const history = $("history");
+const historySearch = $("historySearch");
+const clientStatus = $("clientStatus");
+
+
+/* =========================================================
+   الأرقام
+========================================================= */
+
+function number(value) {
+
+    const x = Number(value);
+
+    if (!Number.isFinite(x) || x < 0) {
+        return 0;
+    }
+
+    return x;
+}
+
+
+function format(value) {
+
+    return new Intl.NumberFormat("en-US", {
+        maximumFractionDigits: 2
+    }).format(number(value));
+}
+
+
+function formatMoney(value, suffix) {
+
+    return new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(number(value)) + " " + suffix;
+}
+
+
+/* =========================================================
+   VIP OPTIONS
+========================================================= */
+
+function buildVipOptions() {
+
+    currentVip.innerHTML = "";
+    targetVip.innerHTML = "";
+
+    VIP_TABLE.forEach(row => {
+
+        const currentOption = document.createElement("option");
+
+        currentOption.value = row.level;
+        currentOption.textContent = `VIP ${row.level}`;
+
+        currentVip.appendChild(currentOption);
+
+
+        const targetOption = document.createElement("option");
+
+        targetOption.value = row.level;
+        targetOption.textContent = `VIP ${row.level}`;
+
+        targetVip.appendChild(targetOption);
+
+    });
+
+    currentVip.value = "10";
+    targetVip.value = "11";
+}
+
+
+/* =========================================================
+   جدول VIP
+========================================================= */
+
+function renderVipTable() {
+
+    const tbody = $("vipTable");
+
+    tbody.innerHTML = "";
+
+    VIP_TABLE.forEach(row => {
+
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+            <td>VIP ${row.level}</td>
+            <td>${format(row.total)}</td>
+            <td>${format(row.upgrade)}</td>
+            <td>${format(row.maintain)}</td>
+        `;
+
+        tbody.appendChild(tr);
+    });
+}
+
+
+/* =========================================================
+   بيانات المستوى
+========================================================= */
+
+function getVip(level) {
+
+    return VIP_TABLE.find(
+        row => row.level === Number(level)
+    );
+}
+
+
+/* =========================================================
+   الوضع
+========================================================= */
+
+function getMode() {
+
+    const selected = document.querySelector(
+        'input[name="mode"]:checked'
+    );
+
+    return selected ? selected.value : "reach";
+}
+
+
+/* =========================================================
+   قيمة الانتقال الأول
+========================================================= */
+
+function getFirstTransitionInput() {
+
+    return document.querySelector(".first-transition-value");
+}
+
+
+/* =========================================================
+   إنشاء الانتقالات
+=========================================================
+
+المستخدم يدخل فقط:
+
+VIP 2 → VIP 3 = القيمة الفعلية
+
+بعدها:
+
+VIP 3 → VIP 4 = تلقائي
+VIP 4 → VIP 5 = تلقائي
+VIP 5 → VIP 6 = تلقائي
+...
+
+لا تظهر خانات كثيرة للمستخدم.
+========================================================= */
+
+function renderTransitions(savedFirstValue = "") {
+
+    const current = Number(currentVip.value);
+    const target = Number(targetVip.value);
+
+    transitionList.innerHTML = "";
+
+    targetLockBox.classList.toggle(
+        "hidden",
+        target <= current
+    );
+
+
+    if (target <= current) {
+
+        transitionArea.classList.remove("hidden");
+
+        transitionList.innerHTML = `
+            <div class="empty">
+                اختر مستوى مطلوب أعلى من المستوى الحالي.
+            </div>
+        `;
+
+        calculate();
+
+        return;
+    }
+
+
+    transitionArea.classList.remove("hidden");
+
+
+    const firstTo = current + 1;
+
+    const firstSaved =
+        savedFirstValue !== ""
+            ? savedFirstValue
+            : "";
+
+
+    /* الانتقال الأول فقط */
+
+    const firstBox = document.createElement("div");
+
+    firstBox.className = "transition first-transition";
+
+    firstBox.innerHTML = `
+
+        <div class="transition-head">
+            <span>أدخل القيمة الفعلية</span>
+            <strong>VIP ${current} → VIP ${firstTo}</strong>
         </div>
 
-        <button id="themeToggle" class="theme-toggle" title="الوضع الليلي والنهاري">
-            ☾
-        </button>
-    </header>
+        <div class="field">
+
+            <label>
+                المتبقي الفعلي للدخول إلى VIP ${firstTo}
+            </label>
+
+            <input
+                class="first-transition-value"
+                type="number"
+                min="0"
+                step="1"
+                value="${firstSaved}"
+                placeholder="أدخل القيمة هنا"
+            >
+
+            <small>
+                هذه هي الخانة الوحيدة التي تحتاج إدخال يدوي.
+            </small>
+
+        </div>
+    `;
+
+    transitionList.appendChild(firstBox);
 
 
-    <main>
+    /* المستويات التالية تلقائية */
 
-        <!-- ================= بيانات العميل ================= -->
+    if (target > firstTo) {
 
-        <section class="card">
+        const autoTitle = document.createElement("div");
 
-            <div class="section-title">
-                <span>01</span>
-                <div>
-                    <h2>بيانات العميل</h2>
-                    <p>أدخل بيانات العميل لحفظ العملية والرجوع إليها لاحقاً</p>
-                </div>
-            </div>
+        autoTitle.className = "automatic-title";
 
-            <div class="grid-2">
+        autoTitle.innerHTML = `
+            <span>الحساب التلقائي</span>
+            <small>القيم التالية مأخوذة من جدول VIP</small>
+        `;
 
-                <div class="field">
-                    <label>اسم العميل</label>
-                    <input id="clientName" type="text" placeholder="اسم العميل">
-                </div>
-
-                <div class="field">
-                    <label>ID الحساب</label>
-                    <input id="clientId" type="text" placeholder="ID الحساب">
-                </div>
-
-            </div>
-
-            <div id="clientStatus" class="status hidden"></div>
-
-        </section>
+        transitionList.appendChild(autoTitle);
 
 
-        <!-- ================= حسبة VIP ================= -->
+        for (let from = firstTo; from < target; from++) {
 
-        <section class="card">
+            const to = from + 1;
+            const data = getVip(to);
 
-            <div class="section-title">
-                <span>02</span>
+            const div = document.createElement("div");
 
-                <div>
-                    <h2>حسبة VIP</h2>
-                    <p>أدخل قيمة الانتقال الأول فقط والباقي يحسب تلقائياً</p>
-                </div>
-            </div>
+            div.className = "transition automatic-transition";
 
+            div.innerHTML = `
 
-            <div class="grid-3">
-
-                <div class="field">
-                    <label>المستوى الحالي</label>
-                    <select id="currentVip"></select>
+                <div class="transition-head">
+                    <span>تلقائي</span>
+                    <strong>VIP ${from} → VIP ${to}</strong>
                 </div>
 
-                <div class="field">
-                    <label>المستوى المطلوب</label>
-                    <select id="targetVip"></select>
-                </div>
+                <div class="auto-transition-value">
 
-                <div class="field">
-                    <label>العرض</label>
-                    <select id="multiplier">
-                        <option value="1">×1</option>
-                        <option value="2">×2</option>
-                        <option value="3">×3</option>
-                        <option value="4">×4</option>
-                        <option value="5" selected>×5</option>
-                        <option value="6">×6</option>
-                        <option value="7">×7</option>
-                        <option value="8">×8</option>
-                        <option value="9">×9</option>
-                        <option value="10">×10</option>
-                    </select>
-                </div>
+                    <span>القيمة المحسوبة</span>
 
-            </div>
-
-
-            <!-- نوع العملية -->
-
-            <div class="mode-box">
-
-                <label class="mode-option active" id="reachModeLabel">
-                    <input type="radio" name="mode" value="reach" checked>
-                    <strong>الوصول إلى مستوى</strong>
-                    <small>أدخل قيمة المستوى الأول فقط والباقي تلقائي</small>
-                </label>
-
-
-                <label class="mode-option" id="currentLockLabel">
-                    <input type="radio" name="mode" value="currentLock">
-                    <strong>تثبيت المستوى الحالي فقط</strong>
-                    <small>قيمة التثبيت تؤخذ تلقائياً من جدول VIP</small>
-                </label>
-
-            </div>
-
-
-            <!-- الانتقالات -->
-
-            <div id="transitionArea">
-
-                <div class="notice">
-                    <strong>طريقة الحسبة:</strong>
-                    أدخل قيمة الانتقال الأول فقط. مثال: VIP 2 → VIP 3.
-                    جميع المستويات التالية يتم حسابها تلقائياً من جدول VIP.
-                </div>
-
-                <div id="transitionList"></div>
-
-            </div>
-
-
-            <!-- التثبيت -->
-
-            <div id="targetLockBox" class="lock-box hidden">
-
-                <div class="lock-header">
-
-                    <div>
-                        <strong>تثبيت المستوى المطلوب</strong>
-                        <small>
-                            قيمة التثبيت يتم جلبها تلقائياً من جدول VIP.
-                        </small>
-                    </div>
-
-                    <label class="switch">
-                        <input id="enableTargetLock" type="checkbox">
-                        <span></span>
-                    </label>
+                    <strong>
+                        ${format(data ? data.upgrade : 0)}
+                    </strong>
 
                 </div>
 
+            `;
 
-                <div id="targetLockInput" class="hidden">
+            transitionList.appendChild(div);
+        }
+    }
 
-                    <div class="auto-value">
 
-                        <div>
-                            <span>قيمة التثبيت التلقائية</span>
-                            <strong id="autoLockValue">0</strong>
-                        </div>
+    updateAutoLock();
 
-                        <div>
-                            <span>VIP</span>
-                            <strong id="autoLockLevel">0</strong>
-                        </div>
+    calculate();
+}
 
-                    </div>
 
-                </div>
+/* =========================================================
+   حساب نقاط الوصول
+========================================================= */
 
-            </div>
+function calculateReach() {
 
-        </section>
+    const current = Number(currentVip.value);
+    const target = Number(targetVip.value);
 
+    if (target <= current) {
+        return 0;
+    }
 
-        <!-- ================= الأسعار ================= -->
 
-        <section class="card">
+    const firstInput = getFirstTransitionInput();
 
-            <div class="section-title">
-                <span>03</span>
+    const firstValue = firstInput
+        ? number(firstInput.value)
+        : 0;
 
-                <div>
-                    <h2>إعداد الدعم والأسعار</h2>
-                    <p>يمكن تعديل القيم حسب نظام الوكالة</p>
-                </div>
-            </div>
 
+    let total = firstValue;
 
-            <div class="grid-3">
 
-                <div class="field">
-                    <label>دعم كل مليون شحن</label>
+    /*
+    كل انتقال بعد الأول يؤخذ تلقائياً
+    من XP الترقية للمستوى الهدف.
+    */
 
-                    <input
-                        id="supportRate"
-                        type="number"
-                        min="0"
-                        step="1"
-                        value="130000"
-                    >
+    for (let level = current + 1; level < target; level++) {
 
-                    <small>
-                        كل 130,000 دعم = 11 دينار = 15 دولار
-                    </small>
-                </div>
+        const nextLevel = level + 1;
+        const data = getVip(nextLevel);
 
+        if (data) {
+            total += number(data.upgrade);
+        }
+    }
 
-                <div class="field">
-                    <label>سعر 130 ألف دعم — دينار</label>
 
-                    <input
-                        id="jodRate"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value="11"
-                    >
+    return total;
+}
 
-                </div>
 
+/* =========================================================
+   التثبيت التلقائي
+========================================================= */
 
-                <div class="field">
-                    <label>سعر 130 ألف دعم — دولار</label>
+function getAutomaticLockValue() {
 
-                    <input
-                        id="usdRate"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value="15"
-                    >
+    const mode = getMode();
 
-                </div>
+    let level = 0;
 
-            </div>
+    if (mode === "currentLock") {
+        level = Number(currentVip.value);
+    } else {
+        level = Number(targetVip.value);
+    }
 
-        </section>
+    const data = getVip(level);
 
+    return data
+        ? number(data.maintain)
+        : 0;
+}
 
-        <!-- ================= النتيجة ================= -->
 
-        <section class="result-card">
+function updateAutoLock() {
 
-            <div class="result-title">
+    const mode = getMode();
 
-                <div>
-                    <small>النتيجة النهائية</small>
-                    <h2 id="resultTitle">VIP 10 → VIP 11</h2>
-                </div>
+    if (mode === "currentLock") {
 
-                <div class="multiplier-badge" id="resultMultiplier">
-                    ×5
-                </div>
+        targetLockBox.classList.add("hidden");
+        targetLockInput.classList.add("hidden");
 
-            </div>
+        return;
+    }
 
 
-            <div class="hero-result">
+    const target = Number(targetVip.value);
 
-                <small>إجمالي شحن الوكيل</small>
+    if (target <= Number(currentVip.value)) {
 
-                <strong id="actualCharge">0</strong>
+        targetLockBox.classList.add("hidden");
 
-                <span>كوينز</span>
+        return;
+    }
 
-            </div>
 
+    targetLockBox.classList.remove("hidden");
 
-            <div class="result-grid">
 
-                <div class="result-box">
-                    <small>نقاط الوصول</small>
-                    <strong id="reachPoints">0</strong>
-                </div>
+    const value = getAutomaticLockValue();
 
+    autoLockValue.textContent = format(value);
+    autoLockLevel.textContent = `VIP ${target}`;
 
-                <div class="result-box">
-                    <small>نقاط التثبيت</small>
-                    <strong id="lockPoints">0</strong>
-                </div>
+    targetLockInput.classList.toggle(
+        "hidden",
+        !enableTargetLock.checked
+    );
+}
 
 
-                <div class="result-box highlight">
-                    <small>إجمالي الوصول + التثبيت</small>
-                    <strong id="totalVipPoints">0</strong>
-                </div>
+/* =========================================================
+   التثبيت الحالي
+========================================================= */
 
+function renderCurrentLock() {
 
-                <div class="result-box support">
-                    <small>إجمالي الدعم المطلوب</small>
-                    <strong id="supportNeeded">0</strong>
-                </div>
+    transitionArea.classList.remove("hidden");
+    targetLockBox.classList.add("hidden");
 
+    transitionList.innerHTML = "";
 
-                <div class="result-box">
-                    <small>سعر الدعم المستخدم — دينار</small>
-                    <strong id="jodTotal">0.00 د.أ</strong>
-                </div>
 
+    const current = Number(currentVip.value);
+    const data = getVip(current);
 
-                <div class="result-box">
-                    <small>سعر الدعم المستخدم — دولار</small>
-                    <strong id="usdTotal">0.00 $</strong>
-                </div>
+    const value = data
+        ? number(data.maintain)
+        : 0;
 
-            </div>
 
+    transitionList.innerHTML = `
 
-            <div class="formula">
+        <div class="transition current-lock-card">
 
-                <div>
-                    <span>نقاط الوصول</span>
-                    <b id="formulaReach">0</b>
-                </div>
+            <div class="transition-head">
 
-                <i>+</i>
+                <span>تلقائي</span>
 
-                <div>
-                    <span>التثبيت</span>
-                    <b id="formulaLock">0</b>
-                </div>
-
-                <i>=</i>
-
-                <div>
-                    <span>الإجمالي</span>
-                    <b id="formulaVip">0</b>
-                </div>
-
-                <i>÷</i>
-
-                <div>
-                    <span>العرض</span>
-                    <b id="formulaMultiplier">×5</b>
-                </div>
-
-            </div>
-
-
-            <div class="support-formula">
-
-                <span>حسبة الدعم:</span>
-
-                <strong id="formulaSupport">
-                    0 ÷ 1,000,000 × 130,000 = 0
+                <strong>
+                    تثبيت VIP ${current}
                 </strong>
 
             </div>
 
-        </section>
 
+            <div class="auto-lock-big">
 
-        <!-- ================= أزرار ================= -->
+                <small>قيمة التثبيت المحسوبة تلقائياً</small>
 
-        <div class="actions">
+                <strong>
+                    ${format(value)}
+                </strong>
 
-            <button id="calculateBtn" class="btn primary">
-                احسب الآن
-            </button>
+                <span>
+                    مأخوذة من XP للحفاظ في جدول VIP
+                </span>
 
-            <button id="saveBtn" class="btn secondary">
-                حفظ العملية
-            </button>
-
-            <button id="newBtn" class="btn dark">
-                عملية جديدة
-            </button>
+            </div>
 
         </div>
+    `;
 
 
-        <!-- ================= سجل العملاء ================= -->
+    calculate();
+}
 
-        <section class="card">
 
-            <div class="section-title">
+/* =========================================================
+   حساب النتيجة
+========================================================= */
 
-                <span>04</span>
+function calculate() {
 
-                <div>
-                    <h2>سجل العملاء والعمليات</h2>
-                    <p>العمليات محفوظة داخل المتصفح على هذا الجهاز</p>
-                </div>
+    const mode = getMode();
+
+    const current = Number(currentVip.value);
+    const target = Number(targetVip.value);
+
+    const x = number(multiplier.value);
+
+    const supportPerMillion = number(supportRate.value);
+
+    const jodPerSupportUnit = number(jodRate.value);
+    const usdPerSupportUnit = number(usdRate.value);
+
+
+    let reach = 0;
+    let lock = 0;
+
+
+    if (mode === "currentLock") {
+
+        const data = getVip(current);
+
+        lock = data
+            ? number(data.maintain)
+            : 0;
+
+    } else {
+
+        if (target > current) {
+
+            reach = calculateReach();
+
+            if (enableTargetLock.checked) {
+                lock = getAutomaticLockValue();
+            }
+
+        }
+    }
+
+
+    const total = reach + lock;
+
+    const charge = x > 0
+        ? total / x
+        : 0;
+
+
+    /*
+    ========================================================
+    التصحيح المهم:
+
+    الدعم = الشحن الفعلي ÷ 1,000,000 × دعم المليون
+
+    سعر الدعم:
+    كل supportRate دعم = jodRate دينار
+    كل supportRate دعم = usdRate دولار
+
+    لذلك:
+
+    السعر بالدينار =
+    الدعم ÷ 130000 × 11
+
+    وليس:
+    الشحن ÷ 1,000,000 × 11
+    ========================================================
+    */
+
+
+    const support =
+        (charge / 1000000) *
+        supportPerMillion;
+
+
+    const jod =
+        supportPerMillion > 0
+            ? (support / supportPerMillion) * jodPerSupportUnit
+            : 0;
+
+
+    const usd =
+        supportPerMillion > 0
+            ? (support / supportPerMillion) * usdPerSupportUnit
+            : 0;
+
+
+    showCalculation(
+        current,
+        target,
+        reach,
+        lock,
+        total,
+        x,
+        support,
+        jod,
+        usd,
+        supportPerMillion,
+        jodPerSupportUnit,
+        usdPerSupportUnit
+    );
+}
+
+
+/* =========================================================
+   عرض النتيجة
+========================================================= */
+
+function showCalculation(
+    current,
+    target,
+    reach,
+    lock,
+    total,
+    x,
+    support,
+    jod,
+    usd,
+    supportPerMillion,
+    jodRateValue,
+    usdRateValue
+) {
+
+    if (current === target) {
+
+        resultTitle.textContent =
+            `تثبيت VIP ${current}`;
+
+    } else {
+
+        resultTitle.textContent =
+            `VIP ${current} → VIP ${target}`;
+    }
+
+
+    resultMultiplier.textContent =
+        `×${x}`;
+
+
+    actualCharge.textContent =
+        format(total / (x || 1));
+
+
+    reachPoints.textContent =
+        format(reach);
+
+
+    lockPoints.textContent =
+        format(lock);
+
+
+    totalVipPoints.textContent =
+        format(total);
+
+
+    supportNeeded.textContent =
+        format(support);
+
+
+    jodTotal.textContent =
+        formatMoney(jod, "د.أ");
+
+
+    usdTotal.textContent =
+        formatMoney(usd, "$");
+
+
+    formulaReach.textContent =
+        format(reach);
+
+
+    formulaLock.textContent =
+        format(lock);
+
+
+    formulaVip.textContent =
+        format(total);
+
+
+    formulaMultiplier.textContent =
+        `×${x}`;
+
+
+    formulaSupport.textContent =
+        `${format(total / (x || 1))} ÷ 1,000,000 × ${format(supportPerMillion)} = ${format(support)}`;
+
+}
+
+
+/* =========================================================
+   الوضع UI
+========================================================= */
+
+function updateModeUI() {
+
+    const mode = getMode();
+
+    const reachLabel = $("reachModeLabel");
+    const currentLabel = $("currentLockLabel");
+
+
+    reachLabel.classList.toggle(
+        "active",
+        mode === "reach"
+    );
+
+
+    currentLabel.classList.toggle(
+        "active",
+        mode === "currentLock"
+    );
+
+
+    if (mode === "currentLock") {
+
+        renderCurrentLock();
+
+    } else {
+
+        renderTransitions();
+    }
+}
+
+
+/* =========================================================
+   السجلات
+========================================================= */
+
+function getRecords() {
+
+    try {
+
+        const data =
+            localStorage.getItem(STORAGE_KEY);
+
+        if (!data) {
+            return [];
+        }
+
+        const parsed = JSON.parse(data);
+
+        return Array.isArray(parsed)
+            ? parsed
+            : [];
+
+    } catch {
+
+        return [];
+    }
+}
+
+
+function saveRecords(records) {
+
+    localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(records)
+    );
+}
+
+
+/* =========================================================
+   إنشاء سجل
+========================================================= */
+
+function createRecord() {
+
+    calculate();
+
+    const mode = getMode();
+
+    const current = Number(currentVip.value);
+    const target = Number(targetVip.value);
+
+    const reach = mode === "reach"
+        ? calculateReach()
+        : 0;
+
+    const lock = mode === "currentLock"
+        ? getAutomaticLockValue()
+        : (
+            enableTargetLock.checked
+                ? getAutomaticLockValue()
+                : 0
+        );
+
+    const total = reach + lock;
+
+    const x = number(multiplier.value);
+
+    const charge = x > 0
+        ? total / x
+        : 0;
+
+    const support =
+        (charge / 1000000) *
+        number(supportRate.value);
+
+    const jod =
+        number(supportRate.value) > 0
+            ? (support / number(supportRate.value)) * number(jodRate.value)
+            : 0;
+
+    const usd =
+        number(supportRate.value) > 0
+            ? (support / number(supportRate.value)) * number(usdRate.value)
+            : 0;
+
+
+    return {
+
+        id: Date.now() + Math.random(),
+
+        created: new Date().toISOString(),
+
+        clientName: clientName.value.trim(),
+
+        clientId: clientId.value.trim(),
+
+        mode,
+
+        currentVip: current,
+
+        targetVip: target,
+
+        multiplier: x,
+
+        firstTransition:
+            getFirstTransitionInput()
+                ? number(getFirstTransitionInput().value)
+                : 0,
+
+        targetLockEnabled:
+            mode === "reach"
+                ? enableTargetLock.checked
+                : true,
+
+        reach,
+        lock,
+        total,
+        charge,
+        support,
+        jod,
+        usd,
+
+        supportRate:
+            number(supportRate.value),
+
+        jodRate:
+            number(jodRate.value),
+
+        usdRate:
+            number(usdRate.value)
+    };
+}
+
+
+/* =========================================================
+   حفظ
+========================================================= */
+
+$("saveBtn").addEventListener(
+    "click",
+    () => {
+
+        const id = clientId.value.trim();
+
+
+        if (!id) {
+
+            alert("أدخل ID الحساب أولاً.");
+
+            clientId.focus();
+
+            return;
+        }
+
+
+        const records = getRecords();
+
+        records.unshift(createRecord());
+
+        saveRecords(records);
+
+        clientStatus.textContent =
+            `تم حفظ العملية للعميل ID: ${id}`;
+
+        clientStatus.classList.remove("hidden");
+
+        renderHistory();
+
+        updateStats();
+
+        alert("تم حفظ العملية بنجاح.");
+    }
+);
+
+
+/* =========================================================
+   عرض السجل
+========================================================= */
+
+function renderHistory() {
+
+    const records = getRecords();
+
+    const query =
+        historySearch.value
+            .trim()
+            .toLowerCase();
+
+
+    const filtered = records.filter(record => {
+
+        return (
+
+            !query ||
+
+            String(record.clientId)
+                .toLowerCase()
+                .includes(query)
+
+            ||
+
+            String(record.clientName)
+                .toLowerCase()
+                .includes(query)
+
+        );
+    });
+
+
+    history.innerHTML = "";
+
+
+    if (!filtered.length) {
+
+        history.innerHTML = `
+            <div class="empty">
+                لا توجد عمليات محفوظة.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    filtered.forEach(record => {
+
+        const item = document.createElement("div");
+
+        item.className = "history-item";
+
+
+        const date =
+            new Date(record.created)
+                .toLocaleString("ar");
+
+
+        const operation =
+            record.mode === "currentLock"
+                ? `تثبيت VIP ${record.currentVip}`
+                : `VIP ${record.currentVip} → VIP ${record.targetVip}`;
+
+
+        item.innerHTML = `
+
+            <div class="history-main">
+
+                <strong>
+                    ${safe(record.clientName || "بدون اسم")}
+                </strong>
+
+                <span>
+                    ID: ${safe(record.clientId)}
+                </span>
+
+                <span>
+                    ${operation} · ×${record.multiplier}
+                </span>
+
+                <span>
+                    الشحن: ${format(record.charge)} كوينز
+                </span>
+
+                <span>
+                    الدعم: ${format(record.support)}
+                </span>
+
+                <span>
+                    ${safe(date)}
+                </span>
 
             </div>
 
 
-            <div class="search-row">
+            <div class="history-buttons">
 
-                <input
-                    id="historySearch"
-                    type="search"
-                    placeholder="ابحث باسم العميل أو ID..."
+                <button data-open="${record.id}">
+                    فتح
+                </button>
+
+                <button
+                    class="delete"
+                    data-delete="${record.id}"
                 >
-
-                <button id="clearHistory">
-                    حذف الكل
+                    حذف
                 </button>
 
             </div>
+        `;
 
 
-            <div id="history"></div>
+        history.appendChild(item);
+    });
+}
 
-        </section>
 
+/* =========================================================
+   حماية النص
+========================================================= */
 
-        <!-- ================= جدول VIP ================= -->
+function safe(value) {
 
-        <section class="card">
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
 
-            <div class="section-title">
 
-                <span>05</span>
+/* =========================================================
+   فتح سجل
+========================================================= */
 
-                <div>
-                    <h2>جدول VIP</h2>
-                    <p>مرجع المستويات وقيم الترقية والتثبيت</p>
-                </div>
+history.addEventListener(
+    "click",
+    event => {
 
-            </div>
+        const openId =
+            event.target.dataset.open;
 
+        const deleteId =
+            event.target.dataset.delete;
 
-            <div class="table-wrap">
 
-                <table>
+        if (openId) {
+            loadRecord(Number(openId));
+        }
 
-                    <thead>
-                        <tr>
-                            <th>المستوى</th>
-                            <th>إجمالي الشحن</th>
-                            <th>XP للترقية</th>
-                            <th>XP للحفاظ</th>
-                        </tr>
-                    </thead>
 
-                    <tbody id="vipTable"></tbody>
+        if (deleteId) {
+            deleteRecord(Number(deleteId));
+        }
+    }
+);
 
-                </table>
 
-            </div>
+/* =========================================================
+   تحميل سجل
+========================================================= */
 
-        </section>
+function loadRecord(id) {
 
+    const record =
+        getRecords().find(
+            item => item.id === id
+        );
 
-        <!-- ================= لوحة الإحصائيات المخفية ================= -->
 
-        <section class="stats-section">
+    if (!record) {
+        return;
+    }
 
-            <button id="statsToggle" class="stats-toggle">
 
-                <span>
-                    <b>لوحة الإحصائيات</b>
-                    <small>اضغط لعرض الإحصائيات</small>
-                </span>
+    clientName.value =
+        record.clientName || "";
 
-                <strong id="statsArrow">⌄</strong>
 
-            </button>
+    clientId.value =
+        record.clientId || "";
 
 
-            <div id="statsPanel" class="stats-panel hidden">
+    currentVip.value =
+        String(record.currentVip);
 
-                <div class="stats-grid">
 
-                    <div class="stat-box">
-                        <span>إجمالي العمليات</span>
-                        <strong id="statOperations">0</strong>
-                    </div>
+    targetVip.value =
+        String(record.targetVip);
 
-                    <div class="stat-box">
-                        <span>إجمالي العملاء</span>
-                        <strong id="statCustomers">0</strong>
-                    </div>
 
-                    <div class="stat-box">
-                        <span>إجمالي الشحن</span>
-                        <strong id="statCharge">0</strong>
-                        <small>كوينز</small>
-                    </div>
+    multiplier.value =
+        String(record.multiplier);
 
-                    <div class="stat-box">
-                        <span>إجمالي الدعم</span>
-                        <strong id="statSupport">0</strong>
-                        <small>دعم</small>
-                    </div>
 
-                    <div class="stat-box">
-                        <span>إجمالي نقاط VIP</span>
-                        <strong id="statVipPoints">0</strong>
-                    </div>
+    supportRate.value =
+        record.supportRate || 130000;
 
-                    <div class="stat-box">
-                        <span>إجمالي سعر الدعم</span>
-                        <strong id="statJod">0.00</strong>
-                        <small>د.أ</small>
-                    </div>
 
-                    <div class="stat-box">
-                        <span>إجمالي سعر الدعم</span>
-                        <strong id="statUsd">0.00</strong>
-                        <small>$</small>
-                    </div>
+    jodRate.value =
+        record.jodRate || 11;
 
-                    <div class="stat-box">
-                        <span>أعلى مستوى مستهدف</span>
-                        <strong id="statHighestVip">VIP 0</strong>
-                    </div>
 
-                </div>
+    usdRate.value =
+        record.usdRate || 15;
 
-            </div>
 
-        </section>
+    const radio =
+        document.querySelector(
+            `input[name="mode"][value="${record.mode}"]`
+        );
 
 
-        <!-- ================= الحاسبة العادية ================= -->
+    if (radio) {
+        radio.checked = true;
+    }
 
-        <section class="card calculator-card">
 
-            <div class="section-title">
+    enableTargetLock.checked =
+        Boolean(record.targetLockEnabled);
 
-                <span>06</span>
 
-                <div>
-                    <h2>الحاسبة</h2>
-                    <p>حاسبة عادية سريعة مثل حاسبة الهاتف</p>
-                </div>
+    updateModeUI();
 
-            </div>
 
+    if (record.mode === "reach") {
 
-            <div class="calculator">
+        const input =
+            getFirstTransitionInput();
 
-                <div class="calculator-display">
+        if (input) {
+            input.value =
+                record.firstTransition || 0;
+        }
 
-                    <div id="calculatorHistory"></div>
+        updateAutoLock();
+    }
 
-                    <div id="calculatorResult">0</div>
 
-                </div>
+    calculate();
 
 
-                <div class="calculator-buttons">
+    clientStatus.textContent =
+        `تم فتح سجل العميل ID: ${record.clientId}`;
 
-                    <button class="calc-btn function" data-action="clear">C</button>
-                    <button class="calc-btn function" data-action="delete">⌫</button>
-                    <button class="calc-btn function" data-value="%">%</button>
-                    <button class="calc-btn operator" data-value="/">÷</button>
+    clientStatus.classList.remove("hidden");
 
 
-                    <button class="calc-btn" data-value="7">7</button>
-                    <button class="calc-btn" data-value="8">8</button>
-                    <button class="calc-btn" data-value="9">9</button>
-                    <button class="calc-btn operator" data-value="*">×</button>
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
 
 
-                    <button class="calc-btn" data-value="4">4</button>
-                    <button class="calc-btn" data-value="5">5</button>
-                    <button class="calc-btn" data-value="6">6</button>
-                    <button class="calc-btn operator" data-value="-">−</button>
+/* =========================================================
+   حذف سجل
+========================================================= */
 
+function deleteRecord(id) {
 
-                    <button class="calc-btn" data-value="1">1</button>
-                    <button class="calc-btn" data-value="2">2</button>
-                    <button class="calc-btn" data-value="3">3</button>
-                    <button class="calc-btn operator" data-value="+">+</button>
+    if (!confirm("هل تريد حذف هذه العملية؟")) {
+        return;
+    }
 
 
-                    <button class="calc-btn double-zero" data-value="00">00</button>
-                    <button class="calc-btn" data-value="0">0</button>
-                    <button class="calc-btn" data-value=".">.</button>
-                    <button class="calc-btn equals" data-action="equals">=</button>
+    const records =
+        getRecords().filter(
+            item => item.id !== id
+        );
 
-                </div>
 
-            </div>
+    saveRecords(records);
 
-        </section>
+    renderHistory();
 
+    updateStats();
+}
 
-        <!-- ================= معلومات النظام ================= -->
 
-        <section class="contact-card">
+/* =========================================================
+   حذف الكل
+========================================================= */
 
-            <h2>بيانات نظام الشحن</h2>
+$("clearHistory").addEventListener(
+    "click",
+    () => {
 
+        const records = getRecords();
 
-            <div class="contact-grid">
 
-                <div>
-                    <span>الوكيل غليص</span>
-                    <strong>14935693</strong>
-                </div>
+        if (!records.length) {
 
-                <div>
-                    <span>ID F90</span>
-                    <strong>31991930</strong>
-                </div>
+            alert("السجل فارغ.");
 
-                <div>
-                    <span>حساب غليص</span>
-                    <strong>JOR</strong>
-                </div>
+            return;
+        }
 
-                <div>
-                    <span>ID لورد</span>
-                    <strong>12221042</strong>
-                </div>
 
-            </div>
+        if (!confirm(
+            "هل تريد حذف جميع العمليات المحفوظة؟"
+        )) {
+            return;
+        }
 
 
-            <div class="phones">
+        localStorage.removeItem(STORAGE_KEY);
 
-                <div>
-                    غليص
-                    <strong>+963938722013</strong>
-                </div>
+        renderHistory();
 
-                <div>
-                    F90
-                    <strong>+970568181910</strong>
-                </div>
+        updateStats();
+    }
+);
 
-                <div>
-                    لورد
-                    <strong>+962775630834</strong>
-                </div>
 
-            </div>
+/* =========================================================
+   البحث
+========================================================= */
 
-        </section>
+historySearch.addEventListener(
+    "input",
+    renderHistory
+);
 
-    </main>
 
+/* =========================================================
+   تغيير المستويات
+========================================================= */
 
-    <footer>
+currentVip.addEventListener(
+    "change",
+    updateModeUI
+);
 
-        <div class="footer-title">
-            تم تطوير هذا الموقع بواسطة
-        </div>
 
-        <div class="footer-brand">
-            F90 — أف تسعين للخدمات الرقمية
-        </div>
+targetVip.addEventListener(
+    "change",
+    () => {
 
-        <div class="instagram">
-            Instagram: @f90.xd
-        </div>
+        updateAutoLock();
 
-    </footer>
+        calculate();
+    }
+);
 
-</div>
 
-<script src="script.js"></script>
+/* =========================================================
+   العرض
+========================================================= */
 
-</body>
-</html>
+multiplier.addEventListener(
+    "change",
+    calculate
+);
+
+
+/* =========================================================
+   التثبيت
+========================================================= */
+
+enableTargetLock.addEventListener(
+    "change",
+    () => {
+
+        updateAutoLock();
+
+        calculate();
+    }
+);
+
+
+/* =========================================================
+   الأسعار
+========================================================= */
+
+[
+    supportRate,
+    jodRate,
+    usdRate
+].forEach(input => {
+
+    input.addEventListener(
+        "input",
+        calculate
+    );
+});
+
+
+/* =========================================================
+   قيمة الانتقال الأول
+========================================================= */
+
+transitionList.addEventListener(
+    "input",
+    event => {
+
+        if (
+            event.target.matches(
+                ".first-transition-value"
+            )
+        ) {
+
+            calculate();
+        }
+    }
+);
+
+
+/* =========================================================
+   نوع العملية
+========================================================= */
+
+document
+    .querySelectorAll(
+        'input[name="mode"]'
+    )
+    .forEach(radio => {
+
+        radio.addEventListener(
+            "change",
+            updateModeUI
+        );
+
+    });
+
+
+/* =========================================================
+   الحساب
+========================================================= */
+
+$("calculateBtn").addEventListener(
+    "click",
+    calculate
+);
+
+
+/* =========================================================
+   عملية جديدة
+========================================================= */
+
+$("newBtn").addEventListener(
+    "click",
+    () => {
+
+        if (!confirm(
+            "بدء عملية جديدة؟ السجلات المحفوظة لن تحذف."
+        )) {
+            return;
+        }
+
+
+        clientName.value = "";
+        clientId.value = "";
+
+        currentVip.value = "10";
+        targetVip.value = "11";
+
+        multiplier.value = "5";
+
+        supportRate.value = "130000";
+        jodRate.value = "11";
+        usdRate.value = "15";
+
+        enableTargetLock.checked = false;
+
+
+        const reachRadio =
+            document.querySelector(
+                'input[name="mode"][value="reach"]'
+            );
+
+
+        reachRadio.checked = true;
+
+
+        clientStatus.classList.add("hidden");
+
+
+        updateModeUI();
+
+        calculate();
+
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    }
+);
+
+
+/* =========================================================
+   الإحصائيات
+========================================================= */
+
+function updateStats() {
+
+    const records = getRecords();
+
+
+    const operations = records.length;
+
+
+    /*
+    العميل يعتبر واحداً فقط حتى لو لديه
+    أكثر من عملية.
+    */
+
+    const customers =
+        new Set(
+            records
+                .map(record => String(record.clientId || "").trim())
+                .filter(Boolean)
+        ).size;
+
+
+    const totalCharge =
+        records.reduce(
+            (sum, record) =>
+                sum + number(record.charge),
+            0
+        );
+
+
+    const totalSupport =
+        records.reduce(
+            (sum, record) =>
+                sum + number(record.support),
+            0
+        );
+
+
+    const totalVip =
+        records.reduce(
+            (sum, record) =>
+                sum + number(record.total),
+            0
+        );
+
+
+    const totalJod =
+        records.reduce(
+            (sum, record) =>
+                sum + number(record.jod),
+            0
+        );
+
+
+    const totalUsd =
+        records.reduce(
+            (sum, record) =>
+                sum + number(record.usd),
+            0
+        );
+
+
+    const highestVip =
+        records.length
+            ? Math.max(
+                ...records.map(
+                    record =>
+                        number(record.targetVip)
+                )
+            )
+            : 0;
+
+
+    $("statOperations").textContent =
+        format(operations);
+
+
+    $("statCustomers").textContent =
+        format(customers);
+
+
+    $("statCharge").textContent =
+        format(totalCharge);
+
+
+    $("statSupport").textContent =
+        format(totalSupport);
+
+
+    $("statVipPoints").textContent =
+        format(totalVip);
+
+
+    $("statJod").textContent =
+        format(totalJod);
+
+
+    $("statUsd").textContent =
+        format(totalUsd);
+
+
+    $("statHighestVip").textContent =
+        `VIP ${highestVip}`;
+}
+
+
+/* =========================================================
+   فتح وإخفاء الإحصائيات
+========================================================= */
+
+$("statsToggle").addEventListener(
+    "click",
+    () => {
+
+        const panel = $("statsPanel");
+        const arrow = $("statsArrow");
+
+        const hidden =
+            panel.classList.contains("hidden");
+
+
+        panel.classList.toggle(
+            "hidden",
+            !hidden
+        );
+
+
+        arrow.textContent =
+            hidden ? "⌃" : "⌄";
+    }
+);
+
+
+/* =========================================================
+   الوضع الليلي والنهاري
+========================================================= */
+
+function loadTheme() {
+
+    const saved =
+        localStorage.getItem(THEME_KEY);
+
+
+    if (saved === "light") {
+
+        document.body.classList.add("light");
+
+        $("themeToggle").textContent = "☀";
+
+    } else {
+
+        document.body.classList.remove("light");
+
+        $("themeToggle").textContent = "☾";
+    }
+}
+
+
+$("themeToggle").addEventListener(
+    "click",
+    () => {
+
+        document.body.classList.toggle("light");
+
+
+        const light =
+            document.body.classList.contains("light");
+
+
+        localStorage.setItem(
+            THEME_KEY,
+            light ? "light" : "dark"
+        );
+
+
+        $("themeToggle").textContent =
+            light ? "☀" : "☾";
+    }
+);
+
+
+/* =========================================================
+   الحاسبة العادية
+========================================================= */
+
+(function () {
+
+    const result =
+        $("calculatorResult");
+
+    const calcHistory =
+        $("calculatorHistory");
+
+    const buttons =
+        document.querySelectorAll(".calc-btn");
+
+
+    if (!result || !calcHistory || !buttons.length) {
+        return;
+    }
+
+
+    let expression = "";
+    let justCalculated = false;
+
+
+    function updateDisplay() {
+
+        result.textContent =
+            expression || "0";
+    }
+
+
+    function calculateExpression() {
+
+        if (!expression) {
+            return;
+        }
+
+
+        try {
+
+            let exp =
+                expression
+                    .replace(/×/g, "*")
+                    .replace(/÷/g, "/");
+
+
+            /*
+            النسبة المئوية
+            */
+
+            exp =
+                exp.replace(
+                    /(\d+(?:\.\d+)?)%/g,
+                    "($1/100)"
+                );
+
+
+            if (
+                !/^[0-9+\-*/().\s]+$/.test(exp)
+            ) {
+                throw new Error("Invalid");
+            }
+
+
+            const answer =
+                Function(
+                    `"use strict"; return (${exp})`
+                )();
+
+
+            if (!Number.isFinite(answer)) {
+                throw new Error("Invalid");
+            }
+
+
+            calcHistory.textContent =
+                expression + " =";
+
+
+            expression =
+                String(
+                    Number.isInteger(answer)
+                        ? answer
+                        : Number(
+                            answer.toFixed(10)
+                        )
+                );
+
+
+            justCalculated = true;
+
+            updateDisplay();
+
+        } catch {
+
+            calcHistory.textContent =
+                expression;
+
+            result.textContent =
+                "خطأ";
+
+            expression = "";
+
+            justCalculated = false;
+        }
+    }
+
+
+    buttons.forEach(button => {
+
+        button.addEventListener(
+            "click",
+            function () {
+
+                const value =
+                    this.dataset.value;
+
+                const action =
+                    this.dataset.action;
+
+
+                if (action === "clear") {
+
+                    expression = "";
+
+                    calcHistory.textContent = "";
+
+                    justCalculated = false;
+
+                    updateDisplay();
+
+                    return;
+                }
+
+
+                if (action === "delete") {
+
+                    if (justCalculated) {
+
+                        expression = "";
+
+                        justCalculated = false;
+
+                    } else {
+
+                        expression =
+                            expression.slice(0, -1);
+                    }
+
+
+                    updateDisplay();
+
+                    return;
+                }
+
+
+                if (action === "equals") {
+
+                    calculateExpression();
+
+                    return;
+                }
+
+
+                if (value) {
+
+                    const isOperator =
+                        ["+", "-", "*", "/", "%"]
+                            .includes(value);
+
+
+                    if (
+                        justCalculated &&
+                        !isOperator &&
+                        value !== "."
+                    ) {
+
+                        expression = "";
+                        calcHistory.textContent = "";
+                    }
+
+
+                    if (
+                        value === "." &&
+                        (
+                            expression === "" ||
+                            /[+\-*/]$/.test(expression)
+                        )
+                    ) {
+
+                        expression += "0.";
+
+                    } else {
+
+                        expression += value;
+                    }
+
+
+                    justCalculated = false;
+
+                    updateDisplay();
+                }
+
+            }
+        );
+
+    });
+
+
+    /* لوحة المفاتيح */
+
+    document.addEventListener(
+        "keydown",
+        event => {
+
+            const key = event.key;
+
+
+            if (
+                /[0-9.+\-*/%]/.test(key)
+            ) {
+
+                event.preventDefault();
+
+                const mapped =
+                    key === "*"
+                        ? "*"
+                        : key === "/"
+                            ? "/"
+                            : key;
+
+
+                expression += mapped;
+
+                justCalculated = false;
+
+                updateDisplay();
+
+                return;
+            }
+
+
+            if (key === "Enter" || key === "=") {
+
+                event.preventDefault();
+
+                calculateExpression();
+
+                return;
+            }
+
+
+            if (key === "Backspace") {
+
+                event.preventDefault();
+
+                expression =
+                    expression.slice(0, -1);
+
+                updateDisplay();
+
+                return;
+            }
+
+
+            if (key === "Escape") {
+
+                event.preventDefault();
+
+                expression = "";
+
+                calcHistory.textContent = "";
+
+                updateDisplay();
+            }
+
+        }
+    );
+
+})();
+
+
+/* =========================================================
+   تشغيل
+========================================================= */
+
+buildVipOptions();
+
+renderVipTable();
+
+loadTheme();
+
+updateModeUI();
+
+renderHistory();
+
+updateStats();
+
+calculate();
