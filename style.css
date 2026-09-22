@@ -1,2289 +1,921 @@
-/* =========================================================
-   مجلس القمة للشحن
-   نظام حساب VIP
-   ========================================================= */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --bg: #08090d;
+    --card: rgba(18, 20, 28, 0.88);
+    --card-2: #11131b;
+    --border: rgba(255,255,255,0.08);
+    --text: #f5f5f7;
+    --muted: #9297a5;
+    --red: #e43c4f;
+    --red-dark: #9e2433;
+    --gold: #d8b76a;
+    --green: #38c58b;
+    --shadow: 0 20px 60px rgba(0,0,0,.35);
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at 15% 10%, rgba(228,60,79,.10), transparent 30%),
+        radial-gradient(circle at 85% 25%, rgba(216,183,106,.07), transparent 28%),
+        var(--bg);
+    color: var(--text);
+    font-family:
+        Tahoma,
+        Arial,
+        sans-serif;
+    line-height: 1.6;
+}
+
+button,
+input,
+select {
+    font-family: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.background-glow {
+    position: fixed;
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    filter: blur(100px);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.glow-one {
+    top: 10%;
+    right: -150px;
+    background: rgba(228,60,79,.12);
+}
+
+.glow-two {
+    bottom: 10%;
+    left: -150px;
+    background: rgba(216,183,106,.08);
+}
 
 
-/* =========================================================
-   مستويات VIP
-   ========================================================= */
+/* HEADER */
 
-const LEVELS = [
+.site-header {
+    width: min(1200px, calc(100% - 30px));
+    margin: 25px auto 20px;
+    padding: 22px 25px;
+    border: 1px solid var(--border);
+    background: rgba(12,13,18,.84);
+    backdrop-filter: blur(18px);
+    border-radius: 22px;
+    box-shadow: var(--shadow);
 
-  { lv: 1, total: 50000, up: 50000, keep: 30000 },
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 25px;
+}
 
-  { lv: 2, total: 100000, up: 50000, keep: 30000 },
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
 
-  { lv: 3, total: 300000, up: 100000, keep: 90000 },
+.brand-icon {
+    width: 62px;
+    height: 62px;
+    border-radius: 18px;
 
-  { lv: 4, total: 1000000, up: 800000, keep: 500000 },
+    display: grid;
+    place-items: center;
 
-  { lv: 5, total: 3000000, up: 2000000, keep: 1300000 },
+    background:
+        linear-gradient(145deg, #f05263, #8e1f2d);
 
-  { lv: 6, total: 7000000, up: 4000000, keep: 2600000 },
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: 1px;
 
-  { lv: 7, total: 14000000, up: 7000000, keep: 4500000 },
+    box-shadow:
+        0 12px 35px rgba(228,60,79,.22);
+}
 
-  { lv: 8, total: 26000000, up: 12000000, keep: 7800000 },
+.brand h1 {
+    font-size: clamp(22px, 4vw, 31px);
+    margin-bottom: 2px;
+}
 
-  { lv: 9, total: 42000000, up: 16000000, keep: 11000000 },
+.brand p {
+    color: var(--muted);
+    font-size: 13px;
+}
 
-  { lv: 10, total: 62000000, up: 20000000, keep: 14000000 },
+.developer-top {
+    text-align: left;
+}
 
-  { lv: 11, total: 102000000, up: 40000000, keep: 28000000 },
+.developer-top span,
+.developer-top small {
+    display: block;
+    color: var(--muted);
+}
 
-  { lv: 12, total: 220000000, up: 118000000, keep: 83000000 },
+.developer-top strong {
+    display: block;
+    color: var(--gold);
+    font-size: 15px;
+}
 
-  { lv: 13, total: 430000000, up: 210000000, keep: 150000000 },
-
-  { lv: 14, total: 820000000, up: 390000000, keep: 310000000 },
-
-  { lv: 15, total: 1820000000, up: 1000000000, keep: 700000000 },
-
-  { lv: 16, total: 3820000000, up: 2000000000, keep: 1400000000 },
-
-  { lv: 17, total: 7382000000, up: 3500000000, keep: 3000000000 },
-
-  { lv: 18, total: 11882000000, up: 4500000000, keep: 4000000000 },
-
-  { lv: 19, total: 17382000000, up: 5500000000, keep: 5000000000 },
-
-  { lv: 20, total: 27382000000, up: 10000000000, keep: 9000000000 }
-
-];
-
-
-/* =========================================================
-   STORAGE
-   ========================================================= */
-
-const STORAGE_KEY =
-  "majlis_alqimah_v2";
-
-const THEME_KEY =
-  "majlis_alqimah_theme_v2";
+.developer-top small {
+    margin-top: 3px;
+}
 
 
-function getDatabase() {
+/* CONTAINER */
 
-  try {
+.container {
+    width: min(1200px, calc(100% - 30px));
+    margin: 0 auto 60px;
+}
 
-    const saved =
-      localStorage.getItem(STORAGE_KEY);
+.card {
+    margin-bottom: 22px;
+    padding: 27px;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    background: var(--card);
+    backdrop-filter: blur(18px);
+    box-shadow: var(--shadow);
+    animation: cardIn .55s ease both;
+}
 
-    if (saved) {
+@keyframes cardIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 
-      return JSON.parse(saved);
 
+/* SECTION TITLE */
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.section-title > span {
+    min-width: 43px;
+    height: 43px;
+    border-radius: 13px;
+    display: grid;
+    place-items: center;
+
+    color: white;
+    background: rgba(228,60,79,.12);
+    border: 1px solid rgba(228,60,79,.25);
+
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.section-title h2 {
+    font-size: 20px;
+}
+
+.section-title p {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+
+/* FIELDS */
+
+.grid {
+    display: grid;
+    gap: 17px;
+}
+
+.grid.two {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.grid.three {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.field label {
+    display: block;
+    margin-bottom: 8px;
+    color: #dfe1e8;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.field input,
+.field select {
+    width: 100%;
+    height: 51px;
+
+    border: 1px solid var(--border);
+    border-radius: 13px;
+
+    padding: 0 15px;
+
+    outline: none;
+    color: var(--text);
+    background: #0c0e14;
+
+    transition:
+        border-color .2s ease,
+        box-shadow .2s ease,
+        transform .2s ease;
+}
+
+.field input:focus,
+.field select:focus {
+    border-color: rgba(228,60,79,.65);
+    box-shadow: 0 0 0 4px rgba(228,60,79,.08);
+}
+
+.field select option {
+    background: #101219;
+}
+
+.field small {
+    display: block;
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+
+/* CUSTOMER */
+
+.customer-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 17px;
+}
+
+.secondary-btn,
+.secondary-small {
+    border: 1px solid var(--border);
+    background: #171a22;
+    color: #e7e8ec;
+    border-radius: 11px;
+    padding: 11px 18px;
+    transition: .2s ease;
+}
+
+.secondary-btn:hover,
+.secondary-small:hover {
+    border-color: rgba(228,60,79,.5);
+    transform: translateY(-2px);
+}
+
+.message {
+    min-height: 22px;
+    margin-top: 10px;
+    color: var(--green);
+    font-size: 12px;
+}
+
+
+/* CUSTOM MISSING */
+
+.custom-missing-box {
+    margin-top: 20px;
+    padding: 17px;
+    border-radius: 16px;
+    background: rgba(255,255,255,.025);
+    border: 1px solid var(--border);
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: end;
+}
+
+.hint {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.8;
+}
+
+
+/* INSTALL */
+
+.install-box {
+    margin-top: 20px;
+    padding: 18px;
+    border-radius: 17px;
+    background: rgba(216,183,106,.045);
+    border: 1px solid rgba(216,183,106,.13);
+}
+
+.install-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.install-header h3 {
+    font-size: 15px;
+}
+
+.install-header p {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 3px;
+}
+
+.switch {
+    position: relative;
+    width: 56px;
+    height: 31px;
+    flex-shrink: 0;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch span {
+    position: absolute;
+    inset: 0;
+    border-radius: 50px;
+    background: #272a33;
+    cursor: pointer;
+    transition: .25s;
+}
+
+.switch span::before {
+    content: "";
+    position: absolute;
+    width: 23px;
+    height: 23px;
+    top: 4px;
+    right: 4px;
+    background: #fff;
+    border-radius: 50%;
+    transition: .25s;
+}
+
+.switch input:checked + span {
+    background: var(--gold);
+}
+
+.switch input:checked + span::before {
+    transform: translateX(-25px);
+}
+
+#maintenanceField {
+    margin-top: 17px;
+}
+
+
+/* PRICE SETTINGS */
+
+.price-settings {
+    margin-top: 20px;
+
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 17px;
+
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+}
+
+
+/* CALCULATE */
+
+.calculate-btn {
+    width: 100%;
+    margin-top: 22px;
+    min-height: 57px;
+
+    border: 0;
+    border-radius: 15px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+
+    color: white;
+    font-size: 16px;
+    font-weight: 800;
+
+    background:
+        linear-gradient(135deg, #d73549, #941f2e);
+
+    box-shadow: 0 14px 35px rgba(228,60,79,.2);
+
+    transition: .25s ease;
+}
+
+.calculate-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 40px rgba(228,60,79,.28);
+}
+
+.calculate-btn b {
+    font-size: 22px;
+}
+
+
+/* RESULTS */
+
+.hidden {
+    display: none !important;
+}
+
+.empty-result {
+    text-align: center;
+    padding: 35px 10px;
+    color: var(--muted);
+}
+
+.empty-icon {
+    width: 65px;
+    height: 65px;
+    margin: 0 auto 13px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 20px;
+    background: rgba(216,183,106,.08);
+    border: 1px solid rgba(216,183,106,.15);
+
+    color: var(--gold);
+    font-weight: 900;
+}
+
+.empty-result h3 {
+    color: #dddfe5;
+    margin-bottom: 4px;
+}
+
+.empty-result p {
+    font-size: 12px;
+}
+
+.result-main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 17px;
+}
+
+.result-highlight {
+    position: relative;
+    overflow: hidden;
+
+    padding: 25px;
+    border-radius: 18px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(228,60,79,.14),
+            rgba(228,60,79,.035)
+        );
+
+    border: 1px solid rgba(228,60,79,.18);
+}
+
+.result-highlight::after {
+    content: "VIP";
+    position: absolute;
+    left: -10px;
+    bottom: -25px;
+
+    color: rgba(255,255,255,.025);
+    font-size: 90px;
+    font-weight: 900;
+}
+
+.result-highlight span,
+.result-box span,
+.money-box span {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.result-highlight strong {
+    display: block;
+    margin: 8px 0 0;
+
+    color: white;
+    font-size: clamp(27px, 5vw, 40px);
+    font-weight: 900;
+}
+
+.result-highlight small,
+.result-box small {
+    color: var(--gold);
+    font-size: 11px;
+}
+
+.result-grid {
+    margin-top: 17px;
+
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 13px;
+}
+
+.result-box {
+    padding: 18px;
+    border-radius: 15px;
+
+    background: #101219;
+    border: 1px solid var(--border);
+}
+
+.result-box strong {
+    display: block;
+    margin: 6px 0;
+
+    font-size: 21px;
+}
+
+.money-results {
+    margin-top: 17px;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 13px;
+}
+
+.money-box {
+    padding: 20px;
+    border-radius: 15px;
+
+    background: rgba(216,183,106,.05);
+    border: 1px solid rgba(216,183,106,.12);
+}
+
+.money-box strong {
+    display: block;
+    margin-top: 6px;
+
+    color: var(--gold);
+    font-size: 25px;
+}
+
+.calculation-note {
+    margin-top: 17px;
+    padding: 15px;
+
+    color: #c9cbd2;
+    background: rgba(255,255,255,.025);
+    border-radius: 13px;
+
+    font-size: 12px;
+    line-height: 1.9;
+}
+
+.result-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-top: 17px;
+}
+
+.primary-small,
+.danger-small {
+    border: 0;
+    border-radius: 10px;
+    padding: 10px 15px;
+    color: white;
+}
+
+.primary-small {
+    background: #a92739;
+}
+
+.danger-small {
+    background: #35161c;
+    border: 1px solid rgba(228,60,79,.18);
+}
+
+.primary-small:hover,
+.danger-small:hover {
+    transform: translateY(-2px);
+}
+
+
+/* TABLE */
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 650px;
+}
+
+th,
+td {
+    padding: 13px 14px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+}
+
+th {
+    color: var(--gold);
+    background: #101219;
+    font-weight: 800;
+}
+
+td {
+    color: #d7d9df;
+}
+
+tbody tr {
+    transition: .2s ease;
+}
+
+tbody tr:hover {
+    background: rgba(228,60,79,.035);
+}
+
+.vip-level {
+    color: white;
+    font-weight: 900;
+}
+
+.vip-level::before {
+    content: "VIP ";
+    color: var(--gold);
+}
+
+
+/* HISTORY */
+
+.history-tools {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 15px;
+    align-items: end;
+}
+
+.history-list {
+    margin-top: 20px;
+}
+
+.history-empty {
+    text-align: center;
+    padding: 30px;
+    color: var(--muted);
+    border: 1px dashed var(--border);
+    border-radius: 15px;
+    font-size: 12px;
+}
+
+.history-item {
+    margin-bottom: 12px;
+    padding: 17px;
+
+    border-radius: 15px;
+    background: #101219;
+    border: 1px solid var(--border);
+
+    transition: .2s ease;
+}
+
+.history-item:hover {
+    border-color: rgba(228,60,79,.2);
+}
+
+.history-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    align-items: center;
+}
+
+.history-name {
+    font-weight: 800;
+}
+
+.history-id {
+    color: var(--gold);
+    font-size: 12px;
+}
+
+.history-date {
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.history-data {
+    margin-top: 12px;
+
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 9px;
+}
+
+.history-data div {
+    padding: 10px;
+    background: rgba(255,255,255,.025);
+    border-radius: 10px;
+}
+
+.history-data span {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.history-data strong {
+    display: block;
+    margin-top: 3px;
+    font-size: 13px;
+}
+
+
+/* FOOTER */
+
+footer {
+    width: min(1200px, calc(100% - 30px));
+    margin: 0 auto 25px;
+
+    padding: 30px;
+
+    border-radius: 22px;
+    background: #0d0f15;
+    border: 1px solid var(--border);
+
+    text-align: center;
+}
+
+.footer-brand strong {
+    display: block;
+    font-size: 20px;
+}
+
+.footer-brand span {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.developer {
+    margin-top: 20px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.developer strong {
+    color: var(--gold);
+    margin-right: 5px;
+}
+
+.developer span {
+    display: block;
+    margin-top: 3px;
+}
+
+.contacts {
+    margin-top: 22px;
+
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.contacts div {
+    padding: 11px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(255,255,255,.02);
+}
+
+.contacts span,
+.contacts strong {
+    display: block;
+}
+
+.contacts span {
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.contacts strong {
+    margin-top: 2px;
+    font-size: 11px;
+}
+
+.copyright {
+    margin-top: 25px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 11px;
+}
+
+
+/* RESPONSIVE */
+
+@media (max-width: 850px) {
+
+    .site-header {
+        flex-direction: column;
+        align-items: stretch;
     }
 
-  } catch (error) {
-
-    console.error(error);
-
-  }
-
-
-  return {
-
-    settings: {
-
-      vip: 1,
-
-      throwPerMillion: 130000,
-
-      jodPerMillion: 11,
-
-      usdPerMillion: 15
-
-    },
-
-    customers: {}
-
-  };
-
-}
-
-
-function saveDatabase(data) {
-
-  localStorage.setItem(
-
-    STORAGE_KEY,
-
-    JSON.stringify(data)
-
-  );
-
-}
-
-
-/* =========================================================
-   ELEMENT
-   ========================================================= */
-
-function $(id) {
-
-  return document.getElementById(id);
-
-}
-
-
-/* =========================================================
-   FORMAT
-   ========================================================= */
-
-function numberFormat(
-
-  value,
-
-  decimals = 0
-
-) {
-
-  if (!Number.isFinite(Number(value))) {
-
-    return "0";
-
-  }
-
-
-  return new Intl.NumberFormat(
-
-    "en-US",
-
-    {
-
-      minimumFractionDigits: 0,
-
-      maximumFractionDigits: decimals
-
+    .developer-top {
+        text-align: right;
     }
 
-  ).format(Number(value));
+    .grid.three,
+    .price-settings {
+        grid-template-columns: 1fr;
+    }
 
+    .result-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .history-data {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .contacts {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 
-function getLevel(lv) {
+@media (max-width: 620px) {
 
-  return LEVELS.find(
+    .container,
+    .site-header,
+    footer {
+        width: min(100% - 18px, 1200px);
+    }
 
-    level =>
+    .card {
+        padding: 18px;
+        border-radius: 18px;
+    }
 
-      level.lv === Number(lv)
+    .grid.two,
+    .custom-missing-box,
+    .result-main,
+    .money-results,
+    .history-tools {
+        grid-template-columns: 1fr;
+    }
 
-  );
+    .result-grid {
+        grid-template-columns: 1fr 1fr;
+    }
 
+    .customer-actions {
+        flex-direction: column;
+    }
+
+    .contacts {
+        grid-template-columns: 1fr;
+    }
+
+    .history-top {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .result-highlight strong {
+        font-size: 30px;
+    }
 }
-
-
-/* =========================================================
-   INITIALIZE LEVELS
-   ========================================================= */
-
-function initializeLevels() {
-
-  const current =
-    $("currentLevel");
-
-  const target =
-    $("targetLevel");
-
-
-  current.innerHTML = "";
-
-  target.innerHTML = "";
-
-
-  LEVELS.forEach(level => {
-
-    const a =
-      document.createElement("option");
-
-    a.value = level.lv;
-
-    a.textContent =
-      `VIP ${level.lv}`;
-
-    current.appendChild(a);
-
-
-    const b =
-      document.createElement("option");
-
-    b.value = level.lv;
-
-    b.textContent =
-      `VIP ${level.lv}`;
-
-    target.appendChild(b);
-
-  });
-
-
-  current.value = "1";
-
-  target.value = "2";
-
-
-  $("levelsBody").innerHTML =
-
-    LEVELS.map(level => `
-
-      <tr>
-
-        <td>VIP ${level.lv}</td>
-
-        <td>${numberFormat(level.total)}</td>
-
-        <td>${numberFormat(level.up)}</td>
-
-        <td>${numberFormat(level.keep)}</td>
-
-      </tr>
-
-    `).join("");
-
-}
-
-
-/* =========================================================
-   VIP BUTTONS
-   ========================================================= */
-
-function initializeVipButtons() {
-
-  const grid =
-    $("vipGrid");
-
-
-  grid.innerHTML = "";
-
-
-  for (let i = 1; i <= 10; i++) {
-
-    const button =
-      document.createElement("button");
-
-
-    button.type = "button";
-
-    button.className =
-      "vip-choice";
-
-
-    button.dataset.vip = i;
-
-    button.textContent =
-      `×${i}`;
-
-
-    button.addEventListener(
-
-      "click",
-
-      () => {
-
-        $("vip").value = i;
-
-      }
-
-    );
-
-
-    /*
-      يوجد input مخفي منطقي
-      لتخزين القيمة المختارة.
-      ننشئه مرة واحدة أدناه.
-    */
-
-    grid.appendChild(button);
-
-  }
-
-
-  updateVipButtons(1);
-
-}
-
-
-/* =========================================================
-   VIP VALUE
-   ========================================================= */
-
-let selectedVip = 1;
-
-
-function setVip(value) {
-
-  selectedVip =
-    Math.min(
-
-      10,
-
-      Math.max(
-
-        1,
-
-        Number(value) || 1
-
-      )
-
-    );
-
-
-  updateVipButtons(
-
-    selectedVip
-
-  );
-
-
-  $("selectedVip").textContent =
-    `×${selectedVip}`;
-
-  $("heroVip").textContent =
-    `×${selectedVip}`;
-
-  $("resultVip").textContent =
-    `×${selectedVip}`;
-
-}
-
-
-function updateVipButtons(vip) {
-
-  document
-
-    .querySelectorAll(
-
-      ".vip-choice"
-
-    )
-
-    .forEach(button => {
-
-      button.classList.toggle(
-
-        "active",
-
-        Number(
-
-          button.dataset.vip
-
-        ) === Number(vip)
-
-      );
-
-    });
-
-}
-
-
-/*
-  حقل VIP مخفي داخل الصفحة
-*/
-
-function createVipInput() {
-
-  const input =
-    document.createElement("input");
-
-  input.type = "hidden";
-
-  input.id = "vip";
-
-  input.value = "1";
-
-  document.body.appendChild(input);
-
-}
-
-
-/* =========================================================
-   SETTINGS
-   ========================================================= */
-
-function loadSettings() {
-
-  const db =
-    getDatabase();
-
-
-  $("throwPerMillion").value =
-
-    db.settings.throwPerMillion ??
-    130000;
-
-
-  $("jodPerMillion").value =
-
-    db.settings.jodPerMillion ??
-    11;
-
-
-  $("usdPerMillion").value =
-
-    db.settings.usdPerMillion ??
-    15;
-
-
-  setVip(
-
-    db.settings.vip || 1
-
-  );
-
-}
-
-
-function saveSettings() {
-
-  const db =
-    getDatabase();
-
-
-  db.settings = {
-
-    vip: selectedVip,
-
-    throwPerMillion:
-
-      Number(
-
-        $("throwPerMillion").value
-
-      ) || 0,
-
-    jodPerMillion:
-
-      Number(
-
-        $("jodPerMillion").value
-
-      ) || 0,
-
-    usdPerMillion:
-
-      Number(
-
-        $("usdPerMillion").value
-
-      ) || 0
-
-  };
-
-
-  saveDatabase(db);
-
-
-  toast(
-    "تم حفظ إعدادات الشحن"
-  );
-
-}
-
-
-/* =========================================================
-   CUSTOMER
-   ========================================================= */
-
-function customerId() {
-
-  return $("customerId")
-
-    .value
-
-    .trim();
-
-}
-
-
-function loadCustomer(id) {
-
-  if (!id) {
-
-    $("savedBadge")
-
-      .classList
-
-      .add("hidden");
-
-    $("customerInfo")
-
-      .classList
-
-      .add("hidden");
-
-    renderHistory("");
-
-    return;
-
-  }
-
-
-  const db =
-    getDatabase();
-
-
-  const customer =
-    db.customers[id];
-
-
-  if (!customer) {
-
-    $("savedBadge")
-
-      .classList
-
-      .add("hidden");
-
-    $("customerInfo")
-
-      .classList
-
-      .add("hidden");
-
-    renderHistory(id);
-
-    return;
-
-  }
-
-
-  $("savedBadge")
-
-    .classList
-
-    .remove("hidden");
-
-
-  $("customerName").value =
-    customer.name || "";
-
-
-  $("currentLevel").value =
-    customer.currentLevel || 1;
-
-
-  $("targetLevel").value =
-    customer.targetLevel || 2;
-
-
-  $("currentSupport").value =
-    customer.currentSupport || 0;
-
-
-  $("customerInfo")
-
-    .classList
-
-    .remove("hidden");
-
-
-  $("infoId").textContent =
-    id;
-
-
-  $("infoOperations").textContent =
-    (customer.history || []).length;
-
-
-  $("infoUpdated").textContent =
-    customer.updatedAt
-      ? new Date(
-          customer.updatedAt
-        ).toLocaleString("ar-EG")
-      : "—";
-
-
-  updateLevelDisplay();
-
-  renderHistory(id);
-
-}
-
-
-/* =========================================================
-   CALCULATE MISSING
-   ========================================================= */
-
-function calculateAutomaticReachMissing() {
-
-  const current =
-    Number(
-
-      $("currentLevel").value
-
-    );
-
-
-  const target =
-    Number(
-
-      $("targetLevel").value
-
-    );
-
-
-  const support =
-    Math.max(
-
-      0,
-
-      Number(
-
-        $("currentSupport").value
-
-      ) || 0
-
-    );
-
-
-  const targetData =
-    getLevel(target);
-
-
-  if (!targetData) {
-
-    return 0;
-
-  }
-
-
-  /*
-    إذا كان الهدف أعلى من الحالي:
-    الناقص = إجمالي الهدف - الدعم الحالي.
-
-    إذا كان المستخدم أدخل دعماً
-    تراكمياً فعلياً في حسابه.
-  */
-
-  return Math.max(
-
-    0,
-
-    targetData.total - support
-
-  );
-
-}
-
-
-/* =========================================================
-   MANUAL MISSING
-   ========================================================= */
-
-function getReachMissing() {
-
-  const manual =
-    $("manualToggle").checked;
-
-
-  if (manual) {
-
-    return Math.max(
-
-      0,
-
-      Number(
-
-        $("manualMissing").value
-
-      ) || 0
-
-    );
-
-  }
-
-
-  return calculateAutomaticReachMissing();
-
-}
-
-
-/* =========================================================
-   MAINTENANCE
-   ========================================================= */
-
-function getMaintainMissing() {
-
-  const target =
-    Number(
-
-      $("targetLevel").value
-
-    );
-
-
-  const support =
-    Math.max(
-
-      0,
-
-      Number(
-
-        $("currentSupport").value
-
-      ) || 0
-
-    );
-
-
-  const targetData =
-    getLevel(target);
-
-
-  if (!targetData) {
-
-    return 0;
-
-  }
-
-
-  return Math.max(
-
-    0,
-
-    targetData.keep - support
-
-  );
-
-}
-
-
-/* =========================================================
-   BLOCK CALCULATION
-   ========================================================= */
-
-function calculateBlock(missing) {
-
-  const vip =
-    selectedVip;
-
-
-  const throwPerMillion =
-    Math.max(
-
-      0,
-
-      Number(
-
-        $("throwPerMillion").value
-
-      ) || 0
-
-    );
-
-
-  const jodPerMillion =
-    Math.max(
-
-      0,
-
-      Number(
-
-        $("jodPerMillion").value
-
-      ) || 0
-
-    );
-
-
-  const usdPerMillion =
-    Math.max(
-
-      0,
-
-      Number(
-
-        $("usdPerMillion").value
-
-      ) || 0
-
-    );
-
-
-  /*
-    العميل يحتاج X دعم.
-
-    أنت تشحن X ÷ VIP.
-
-    مثال:
-    الناقص = 5,000,000
-    VIP = 5
-
-    الشحن عليك = 1,000,000
-  */
-
-  const charge =
-    missing / vip;
-
-
-  /*
-    رمي الدعم:
-    كل مليون شحن = القيمة التي أدخلتها.
-  */
-
-  const throwSupport =
-    (charge / 1000000) *
-    throwPerMillion;
-
-
-  /*
-    التحويل النقدي:
-    كل مليون شحن له سعر مستقل.
-  */
-
-  const jod =
-    (charge / 1000000) *
-    jodPerMillion;
-
-
-  const usd =
-    (charge / 1000000) *
-    usdPerMillion;
-
-
-  return {
-
-    missing,
-
-    charge,
-
-    throwSupport,
-
-    jod,
-
-    usd
-
-  };
-
-}
-
-
-/* =========================================================
-   MAIN CALCULATION
-   ========================================================= */
-
-let lastResult = null;
-
-
-function calculate() {
-
-  const id =
-    customerId();
-
-
-  if (!id) {
-
-    toast(
-      "أدخل ID الحساب أولاً"
-    );
-
-    $("customerId").focus();
-
-    return;
-
-  }
-
-
-  const current =
-    Number(
-
-      $("currentLevel").value
-
-    );
-
-
-  const target =
-    Number(
-
-      $("targetLevel").value
-
-    );
-
-
-  const operation =
-    document.querySelector(
-
-      'input[name="operation"]:checked'
-
-    ).value;
-
-
-  /*
-    الوصول
-  */
-
-  const reachMissing =
-    getReachMissing();
-
-
-  /*
-    التثبيت
-  */
-
-  const maintainMissing =
-    getMaintainMissing();
-
-
-  const reach =
-    calculateBlock(
-
-      reachMissing
-
-    );
-
-
-  const maintain =
-    calculateBlock(
-
-      maintainMissing
-
-    );
-
-
-  /*
-    الإجمالي
-  */
-
-  const grand = {
-
-    missing:
-
-      reach.missing +
-
-      maintain.missing,
-
-
-    charge:
-
-      reach.charge +
-
-      maintain.charge,
-
-
-    throwSupport:
-
-      reach.throwSupport +
-
-      maintain.throwSupport,
-
-
-    jod:
-
-      reach.jod +
-
-      maintain.jod,
-
-
-    usd:
-
-      reach.usd +
-
-      maintain.usd
-
-  };
-
-
-  lastResult = {
-
-    id,
-
-    current,
-
-    target,
-
-    operation,
-
-    vip: selectedVip,
-
-    reach,
-
-    maintain,
-
-    grand,
-
-    currentSupport:
-
-      Number(
-
-        $("currentSupport").value
-
-      ) || 0,
-
-    date:
-
-      new Date().toISOString(),
-
-    note:
-
-      ""
-
-  };
-
-
-  renderResult(lastResult);
-
-}
-
-
-/* =========================================================
-   RENDER RESULT
-   ========================================================= */
-
-function renderResult(result) {
-
-  $("results")
-
-    .classList
-
-    .remove("hidden");
-
-
-  $("resultVip").textContent =
-    `×${result.vip}`;
-
-
-  $("resultCurrent").textContent =
-    `VIP ${result.current}`;
-
-
-  $("resultTarget").textContent =
-    `VIP ${result.target}`;
-
-
-  /*
-    نوع العملية
-  */
-
-  let mainBlock;
-
-
-  if (result.operation === "maintain") {
-
-    mainBlock =
-      result.maintain;
-
-  } else {
-
-    mainBlock =
-      result.reach;
-
-  }
-
-
-  /*
-    إذا اختار الوصول + التثبيت،
-    نعرض الإجمالي كرقم رئيسي.
-  */
-
-  if (result.operation === "both") {
-
-    mainBlock =
-      result.grand;
-
-  }
-
-
-  $("mainMissing").textContent =
-    numberFormat(
-
-      mainBlock.missing,
-
-      2
-
-    );
-
-
-  $("resultCharge").textContent =
-    numberFormat(
-
-      mainBlock.charge,
-
-      2
-
-    );
-
-
-  $("resultThrow").textContent =
-    numberFormat(
-
-      mainBlock.throwSupport,
-
-      2
-
-    );
-
-
-  $("resultJod").textContent =
-    `${numberFormat(
-
-      mainBlock.jod,
-
-      2
-
-    )} د.أ`;
-
-
-  $("resultUsd").textContent =
-    `${numberFormat(
-
-      mainBlock.usd,
-
-      2
-
-    )} $`;
-
-
-  /*
-    التثبيت التفصيلي يظهر
-    فقط عند الوصول + التثبيت.
-  */
-
-  if (
-
-    result.operation === "both"
-
-  ) {
-
-    $("secondaryResult")
-
-      .classList
-
-      .remove("hidden");
-
-
-    $("maintainMissingResult")
-
-      .textContent =
-
-      numberFormat(
-
-        result.maintain.missing,
-
-        2
-
-      );
-
-
-    $("maintainChargeResult")
-
-      .textContent =
-
-      numberFormat(
-
-        result.maintain.charge,
-
-        2
-
-      );
-
-
-    $("maintainThrowResult")
-
-      .textContent =
-
-      numberFormat(
-
-        result.maintain.throwSupport,
-
-        2
-
-      );
-
-
-    $("maintainJodResult")
-
-      .textContent =
-
-      numberFormat(
-
-        result.maintain.jod,
-
-        2
-
-      );
-
-
-    $("maintainUsdResult")
-
-      .textContent =
-
-      numberFormat(
-
-        result.maintain.usd,
-
-        2
-
-      );
-
-  } else {
-
-    $("secondaryResult")
-
-      .classList
-
-      .add("hidden");
-
-  }
-
-
-  /*
-    الإجمالي دائماً موجود،
-    لكن عند الوصول أو التثبيت
-    يكون هو نفس العملية.
-  */
-
-  $("grandMissing").textContent =
-    numberFormat(
-
-      result.grand.missing,
-
-      2
-
-    );
-
-
-  $("grandCharge").textContent =
-    numberFormat(
-
-      result.grand.charge,
-
-      2
-
-    );
-
-
-  $("grandThrow").textContent =
-    numberFormat(
-
-      result.grand.throwSupport,
-
-      2
-
-    );
-
-
-  $("grandJod").textContent =
-    numberFormat(
-
-      result.grand.jod,
-
-      2
-
-    );
-
-
-  $("grandUsd").textContent =
-    numberFormat(
-
-      result.grand.usd,
-
-      2
-
-    );
-
-
-  $("results").scrollIntoView({
-
-    behavior: "smooth",
-
-    block: "start"
-
-  });
-
-}
-
-
-/* =========================================================
-   LEVEL DISPLAY
-   ========================================================= */
-
-function updateLevelDisplay() {
-
-  const current =
-    Number(
-
-      $("currentLevel").value
-
-    );
-
-
-  const target =
-    Number(
-
-      $("targetLevel").value
-
-    );
-
-
-  const support =
-    Math.max(
-
-      0,
-
-      Number(
-
-        $("currentSupport").value
-
-      ) || 0
-
-    );
-
-
-  const currentData =
-    getLevel(current);
-
-
-  const targetData =
-    getLevel(target);
-
-
-  $("currentSupportDisplay").textContent =
-    numberFormat(support);
-
-
-  $("currentLevelTotal").textContent =
-    `VIP ${current}: ${numberFormat(currentData.total)}`;
-
-
-  $("targetLevelTotal").textContent =
-    `VIP ${target}: ${numberFormat(targetData.total)}`;
-
-
-  /*
-    نسبة مرئية تقريبية
-    بين المستوى الحالي والهدف.
-  */
-
-  let percentage = 0;
-
-
-  if (
-
-    targetData &&
-
-    targetData.total > 0
-
-  ) {
-
-    percentage =
-      Math.min(
-
-        100,
-
-        (
-
-          support /
-
-          targetData.total
-
-        ) *
-
-        100
-
-      );
-
-  }
-
-
-  $("progressBar").style.width =
-    `${percentage}%`;
-
-}
-
-
-/* =========================================================
-   SAVE CUSTOMER
-   ========================================================= */
-
-function saveCustomerAndOperation() {
-
-  const id =
-    customerId();
-
-
-  if (!id) {
-
-    toast(
-      "أدخل ID الحساب أولاً"
-    );
-
-    return;
-
-  }
-
-
-  /*
-    إذا لم يتم الحساب،
-    نحسب تلقائياً.
-  */
-
-  if (!lastResult || lastResult.id !== id) {
-
-    calculate();
-
-  }
-
-
-  if (!lastResult) {
-
-    return;
-
-  }
-
-
-  const db =
-    getDatabase();
-
-
-  const old =
-    db.customers[id] || {
-
-      history: []
-
-    };
-
-
-  old.name =
-    $("customerName")
-
-      .value
-
-      .trim();
-
-
-  old.currentLevel =
-    Number(
-
-      $("currentLevel").value
-
-    );
-
-
-  old.targetLevel =
-    Number(
-
-      $("targetLevel").value
-
-    );
-
-
-  old.currentSupport =
-    Number(
-
-      $("currentSupport").value
-
-    ) || 0;
-
-
-  old.updatedAt =
-    new Date().toISOString();
-
-
-  old.history =
-    old.history || [];
-
-
-  old.history.unshift({
-
-    id:
-      generateId(),
-
-    date:
-      new Date().toLocaleString(
-
-        "ar-EG"
-
-      ),
-
-    current:
-      lastResult.current,
-
-    target:
-      lastResult.target,
-
-    vip:
-      lastResult.vip,
-
-    operation:
-      lastResult.operation,
-
-    missing:
-      lastResult.grand.missing,
-
-    charge:
-      lastResult.grand.charge,
-
-    throwSupport:
-      lastResult.grand.throwSupport,
-
-    jod:
-      lastResult.grand.jod,
-
-    usd:
-      lastResult.grand.usd
-
-  });
-
-
-  /*
-    آخر 100 عملية فقط.
-  */
-
-  old.history =
-    old.history.slice(
-
-      0,
-
-      100
-
-    );
-
-
-  db.customers[id] =
-    old;
-
-
-  saveDatabase(db);
-
-
-  loadCustomer(id);
-
-
-  toast(
-    "تم حفظ الحساب والعملية"
-  );
-
-}
-
-
-/* =========================================================
-   HISTORY
-   ========================================================= */
-
-function renderHistory(id) {
-
-  const db =
-    getDatabase();
-
-
-  const customer =
-    db.customers[id];
-
-
-  if (
-
-    !id ||
-
-    !customer ||
-
-    !customer.history ||
-
-    customer.history.length === 0
-
-  ) {
-
-    $("historyEmpty").textContent =
-
-      id
-
-        ? "لا توجد عمليات محفوظة لهذا الحساب."
-
-        : "أدخل ID العميل لعرض السجل.";
-
-
-    $("historyEmpty")
-
-      .classList
-
-      .remove("hidden");
-
-
-    $("historyTableWrap")
-
-      .classList
-
-      .add("hidden");
-
-
-    return;
-
-  }
-
-
-  $("historyEmpty")
-
-    .classList
-
-    .add("hidden");
-
-
-  $("historyTableWrap")
-
-    .classList
-
-    .remove("hidden");
-
-
-  $("historyBody").innerHTML =
-
-    customer.history.map(
-
-      item => `
-
-        <tr>
-
-          <td>
-            ${escapeHtml(item.date)}
-          </td>
-
-          <td>
-            VIP ${item.current}
-          </td>
-
-          <td>
-            VIP ${item.target}
-          </td>
-
-          <td>
-            ×${item.vip}
-          </td>
-
-          <td>
-            ${numberFormat(item.missing, 2)}
-          </td>
-
-          <td>
-            ${numberFormat(item.charge, 2)}
-          </td>
-
-          <td>
-            ${numberFormat(item.jod, 2)}
-          </td>
-
-          <td>
-            ${numberFormat(item.usd, 2)}
-          </td>
-
-          <td>
-
-            <button
-              class="delete-history"
-              data-id="${item.id}">
-
-              حذف
-
-            </button>
-
-          </td>
-
-        </tr>
-
-      `
-
-    ).join("");
-
-
-  document
-
-    .querySelectorAll(
-
-      ".delete-history"
-
-    )
-
-    .forEach(button => {
-
-      button.addEventListener(
-
-        "click",
-
-        () => {
-
-          deleteHistory(
-
-            id,
-
-            button.dataset.id
-
-          );
-
-        }
-
-      );
-
-    });
-
-}
-
-
-/* =========================================================
-   DELETE HISTORY
-   ========================================================= */
-
-function deleteHistory(
-
-  customer,
-
-  operationId
-
-) {
-
-  const db =
-    getDatabase();
-
-
-  if (!db.customers[customer]) {
-
-    return;
-
-  }
-
-
-  db.customers[customer].history =
-
-    db.customers[customer]
-
-      .history
-
-      .filter(
-
-        item =>
-
-          item.id !== operationId
-
-      );
-
-
-  saveDatabase(db);
-
-
-  renderHistory(customer);
-
-
-  toast(
-    "تم حذف العملية"
-  );
-
-}
-
-
-/* =========================================================
-   CLEAR HISTORY
-   ========================================================= */
-
-function clearHistory() {
-
-  const id =
-    customerId();
-
-
-  if (!id) {
-
-    toast(
-      "أدخل ID الحساب أولاً"
-    );
-
-    return;
-
-  }
-
-
-  const db =
-    getDatabase();
-
-
-  if (!db.customers[id]) {
-
-    toast(
-      "لا يوجد سجل لهذا الحساب"
-    );
-
-    return;
-
-  }
-
-
-  if (
-
-    !confirm(
-
-      `هل تريد حذف جميع عمليات الحساب ${id}؟`
-
-    )
-
-  ) {
-
-    return;
-
-  }
-
-
-  db.customers[id].history = [];
-
-
-  saveDatabase(db);
-
-
-  renderHistory(id);
-
-
-  toast(
-    "تم مسح سجل الحساب"
-  );
-
-}
-
-
-/* =========================================================
-   THEME
-   ========================================================= */
-
-function initializeTheme() {
-
-  const theme =
-    localStorage.getItem(
-
-      THEME_KEY
-
-    );
-
-
-  if (theme === "light") {
-
-    document.body.classList.add(
-      "light"
-    );
-
-  }
-
-
-  updateThemeButton();
-
-}
-
-
-function updateThemeButton() {
-
-  $("themeBtn").textContent =
-
-    document.body.classList.contains(
-
-      "light"
-
-    )
-
-      ? "☾"
-
-      : "☀";
-
-}
-
-
-function toggleTheme() {
-
-  document.body.classList.toggle(
-    "light"
-  );
-
-
-  localStorage.setItem(
-
-    THEME_KEY,
-
-    document.body.classList.contains(
-
-      "light"
-
-    )
-
-      ? "light"
-
-      : "dark"
-
-  );
-
-
-  updateThemeButton();
-
-}
-
-
-/* =========================================================
-   COPY
-   ========================================================= */
-
-async function copyText(text) {
-
-  try {
-
-    await navigator.clipboard.writeText(
-      text
-    );
-
-    toast("تم النسخ");
-
-  } catch {
-
-    const area =
-      document.createElement("textarea");
-
-    area.value = text;
-
-    document.body.appendChild(area);
-
-    area.select();
-
-    document.execCommand("copy");
-
-    area.remove();
-
-    toast("تم النسخ");
-
-  }
-
-}
-
-
-/* =========================================================
-   UTILITIES
-   ========================================================= */
-
-function generateId() {
-
-  return (
-
-    Date.now().toString(36) +
-
-    Math.random()
-
-      .toString(36)
-
-      .slice(2)
-
-  );
-
-}
-
-
-function escapeHtml(value) {
-
-  return String(value ?? "")
-
-    .replace(
-
-      /[&<>"']/g,
-
-      character => ({
-
-        "&": "&amp;",
-
-        "<": "&lt;",
-
-        ">": "&gt;",
-
-        '"': "&quot;",
-
-        "'": "&#039;"
-
-      })[character]
-
-    );
-
-}
-
-
-function toast(message) {
-
-  const element =
-    $("toast");
-
-
-  element.textContent =
-    message;
-
-
-  element.classList.add(
-    "show"
-  );
-
-
-  clearTimeout(
-    window.toastTimer
-  );
-
-
-  window.toastTimer =
-
-    setTimeout(
-
-      () => {
-
-        element.classList.remove(
-          "show"
-        );
-
-      },
-
-      1800
-
-    );
-
-}
-
-
-/* =========================================================
-   EVENT LISTENERS
-   ========================================================= */
-
-document.addEventListener(
-
-  "DOMContentLoaded",
-
-  () => {
-
-    createVipInput();
-
-    initializeLevels();
-
-    initializeVipButtons();
-
-    loadSettings();
-
-    initializeTheme();
-
-
-    /*
-      VIP
-    */
-
-    document
-
-      .querySelectorAll(
-
-        ".vip-choice"
-
-      )
-
-      .forEach(button => {
-
-        button.addEventListener(
-
-          "click",
-
-          () => {
-
-            setVip(
-
-              Number(
-
-                button.dataset.vip
-
-              )
-
-            );
-
-            saveSettings();
-
-          }
-
-        );
-
-      });
-
-
-    /*
-      العميل
-    */
-
-    $("customerId")
-
-      .addEventListener(
-
-        "input",
-
-        event => {
-
-          loadCustomer(
-
-            event.target.value.trim()
-
-          );
-
-        }
-
-      );
-
-
-    /*
-      المستويات
-    */
-
-    $("currentLevel")
-
-      .addEventListener(
-
-        "change",
-
-        updateLevelDisplay
-
-      );
-
-
-    $("targetLevel")
-
-      .addEventListener(
-
-        "change",
-
-        updateLevelDisplay
-
-      );
-
-
-    $("currentSupport")
-
-      .addEventListener(
-
-        "input",
-
-        updateLevelDisplay
-
-      );
-
-
-    /*
-      الإدخال اليدوي
-    */
-
-    $("manualToggle")
-
-      .addEventListener(
-
-        "change",
-
-        () => {
-
-          $("manualMissingBox")
-
-            .classList
-
-            .toggle(
-
-              "hidden",
-
-              !$("manualToggle").checked
-
-            );
-
-        }
-
-      );
-
-
-    /*
-      الحساب
-    */
-
-    $("calculateBtn")
-
-      .addEventListener(
-
-        "click",
-
-        calculate
-
-      );
-
-
-    /*
-      الحفظ
-    */
-
-    $("saveCustomerBtn")
-
-      .addEventListener(
-
-        "click",
-
-        saveCustomerAndOperation
-
-      );
-
-
-    /*
-      الثيم
-    */
-
-    $("themeBtn")
-
-      .addEventListener(
-
-        "click",
-
-        toggleTheme
-
-      );
-
-
-    /*
-      مسح السجل
-    */
-
-    $("clearHistoryBtn")
-
-      .addEventListener(
-
-        "click",
-
-        clearHistory
-
-      );
-
-
-    /*
-      النسخ
-    */
-
-    document
-
-      .querySelectorAll(
-
-        ".copy-btn"
-
-      )
-
-      .forEach(button => {
-
-        button.addEventListener(
-
-          "click",
-
-          () => {
-
-            copyText(
-
-              button.dataset.copy
-
-            );
-
-          }
-
-        );
-
-      });
-
-
-    /*
-      تشغيل أولي
-    */
-
-    updateLevelDisplay();
-
-  }
-
-);
