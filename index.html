@@ -1,29 +1,505 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
-  <head>
-    <meta charset="UTF-8" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0"
-    />
+    <title>مجلس القمة للشحن | حاسبة VIP</title>
 
-    <meta
-      name="theme-color"
-      content="#0b0d10"
-    />
+    <link rel="stylesheet" href="style.css">
+</head>
 
-    <meta
-      name="description"
-      content="مجلس القمة للشحن - حاسبة VIP"
-    />
+<body>
 
-    <title>مجلس القمة للشحن</title>
-  </head>
+<div class="background-glow glow-one"></div>
+<div class="background-glow glow-two"></div>
 
-  <body>
-    <div id="root"></div>
+<header class="site-header">
+    <div class="brand">
+        <div class="brand-icon">VIP</div>
+        <div>
+            <h1>مجلس القمة للشحن</h1>
+            <p>حاسبة VIP والشحن الصافي</p>
+        </div>
+    </div>
 
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>
+    <div class="developer-top">
+        <span>تم تطوير التطبيق بواسطة</span>
+        <strong>F90 أف تسعين للخدمات الرقمية</strong>
+        <small>Instagram: f90.xd</small>
+    </div>
+</header>
+
+
+<main class="container">
+
+    <!-- بيانات العميل -->
+    <section class="card customer-card">
+        <div class="section-title">
+            <span>01</span>
+            <div>
+                <h2>بيانات العميل</h2>
+                <p>احفظ بيانات العميل للوصول إليها لاحقًا</p>
+            </div>
+        </div>
+
+        <div class="grid two">
+
+            <div class="field">
+                <label for="customerId">ID الحساب</label>
+                <input
+                    id="customerId"
+                    type="text"
+                    placeholder="أدخل ID الحساب"
+                    autocomplete="off"
+                >
+            </div>
+
+            <div class="field">
+                <label for="customerName">اسم العميل</label>
+                <input
+                    id="customerName"
+                    type="text"
+                    placeholder="أدخل اسم العميل"
+                    autocomplete="off"
+                >
+            </div>
+
+        </div>
+
+        <div class="customer-actions">
+            <button class="secondary-btn" id="loadCustomerBtn">
+                تحميل العميل
+            </button>
+
+            <button class="secondary-btn" id="saveCustomerBtn">
+                حفظ العميل
+            </button>
+        </div>
+
+        <div id="customerMessage" class="message"></div>
+    </section>
+
+
+    <!-- إعدادات الحاسبة -->
+    <section class="card calculator-card">
+
+        <div class="section-title">
+            <span>02</span>
+            <div>
+                <h2>إعداد عملية الشحن</h2>
+                <p>أدخل المستويات والقيم المطلوبة</p>
+            </div>
+        </div>
+
+
+        <div class="grid three">
+
+            <!-- المستوى الحالي -->
+            <div class="field">
+                <label for="currentVip">المستوى الحالي</label>
+
+                <select id="currentVip">
+                    <option value="">اختر المستوى الحالي</option>
+                </select>
+            </div>
+
+
+            <!-- المستوى المطلوب -->
+            <div class="field">
+                <label for="targetVip">المستوى المطلوب</label>
+
+                <select id="targetVip">
+                    <option value="">اختر المستوى المطلوب</option>
+                </select>
+            </div>
+
+
+            <!-- العرض -->
+            <div class="field">
+                <label for="vipMultiplier">عرض الشحن</label>
+
+                <select id="vipMultiplier">
+                    <option value="1">×1</option>
+                    <option value="2">×2</option>
+                    <option value="3">×3</option>
+                    <option value="4">×4</option>
+                    <option value="5" selected>×5</option>
+                    <option value="6">×6</option>
+                    <option value="7">×7</option>
+                    <option value="8">×8</option>
+                    <option value="9">×9</option>
+                    <option value="10">×10</option>
+                </select>
+            </div>
+
+        </div>
+
+
+        <!-- القيمة الناقصة -->
+        <div class="custom-missing-box">
+
+            <div class="field">
+                <label for="customMissing">
+                    القيمة الناقصة للوصول
+                </label>
+
+                <input
+                    id="customMissing"
+                    type="number"
+                    min="0"
+                    step="any"
+                    placeholder="اتركها فارغة لاستخدام جدول VIP"
+                >
+            </div>
+
+            <div class="hint">
+                يمكنك إدخال القيمة التي تظهر في صورة حساب العميل يدويًا.
+                عند إدخالها سيتم استخدامها بدل قيمة المرحلة المحسوبة.
+            </div>
+
+        </div>
+
+
+        <!-- تثبيت -->
+        <div class="install-box">
+
+            <div class="install-header">
+                <div>
+                    <h3>خيار تثبيت المستوى</h3>
+                    <p>اختر إذا كان المطلوب تثبيت المستوى بعد الوصول</p>
+                </div>
+
+                <label class="switch">
+                    <input type="checkbox" id="includeMaintenance">
+                    <span></span>
+                </label>
+            </div>
+
+
+            <div class="field hidden" id="maintenanceField">
+
+                <label for="maintenanceAmount">
+                    قيمة التثبيت / الخبرة المطلوبة للحفاظ
+                </label>
+
+                <input
+                    id="maintenanceAmount"
+                    type="number"
+                    min="0"
+                    step="any"
+                    placeholder="تُستخدم قيمة التثبيت من جدول VIP تلقائيًا"
+                >
+
+                <small>
+                    يمكنك تركها فارغة لاستخدام قيمة التثبيت الموجودة في جدول VIP.
+                </small>
+
+            </div>
+
+        </div>
+
+
+        <!-- سعر المليون -->
+        <div class="price-settings">
+
+            <div class="field">
+                <label for="coinsPerMillion">
+                    عدد كوينز الدعم لكل مليون
+                </label>
+
+                <input
+                    id="coinsPerMillion"
+                    type="number"
+                    min="1"
+                    step="any"
+                    value="130000"
+                >
+
+                <small>
+                    قابل للتعديل. الافتراضي 130,000 كوينز لكل مليون.
+                </small>
+            </div>
+
+
+            <div class="field">
+                <label for="jodPerMillion">
+                    سعر المليون بالدينار الأردني
+                </label>
+
+                <input
+                    id="jodPerMillion"
+                    type="number"
+                    min="0"
+                    step="any"
+                    value="11"
+                >
+            </div>
+
+
+            <div class="field">
+                <label for="usdPerMillion">
+                    سعر المليون بالدولار الأمريكي
+                </label>
+
+                <input
+                    id="usdPerMillion"
+                    type="number"
+                    min="0"
+                    step="any"
+                    value="15"
+                >
+            </div>
+
+        </div>
+
+
+        <button class="calculate-btn" id="calculateBtn">
+            <span>احسب العملية</span>
+            <b>→</b>
+        </button>
+
+    </section>
+
+
+    <!-- النتائج -->
+    <section class="card results-card">
+
+        <div class="section-title">
+            <span>03</span>
+            <div>
+                <h2>نتيجة الحساب</h2>
+                <p>القيم المطلوبة للعميل وعملية الشحن</p>
+            </div>
+        </div>
+
+
+        <div id="resultEmpty" class="empty-result">
+            <div class="empty-icon">VIP</div>
+            <h3>لم يتم الحساب بعد</h3>
+            <p>أدخل البيانات ثم اضغط «احسب العملية»</p>
+        </div>
+
+
+        <div id="resultContent" class="hidden">
+
+            <div class="result-main">
+
+                <div class="result-highlight">
+                    <span>الدعم المطلوب من العميل</span>
+                    <strong id="resultCustomerCoins">0</strong>
+                    <small>كوينز دعم</small>
+                </div>
+
+                <div class="result-highlight">
+                    <span>الشحن الذي ستنفذه</span>
+                    <strong id="resultChargedMillions">0</strong>
+                    <small>مليون</small>
+                </div>
+
+            </div>
+
+
+            <div class="result-grid">
+
+                <div class="result-box">
+                    <span>الفرق للوصول بدون تثبيت</span>
+                    <strong id="resultWithoutMaintenance">0</strong>
+                    <small>مليون</small>
+                </div>
+
+                <div class="result-box">
+                    <span>قيمة التثبيت</span>
+                    <strong id="resultMaintenance">0</strong>
+                    <small>مليون</small>
+                </div>
+
+                <div class="result-box">
+                    <span>الإجمالي مع التثبيت</span>
+                    <strong id="resultTotal">0</strong>
+                    <small>مليون</small>
+                </div>
+
+                <div class="result-box">
+                    <span>المعامل المستخدم</span>
+                    <strong id="resultMultiplier">×0</strong>
+                    <small>عرض VIP</small>
+                </div>
+
+            </div>
+
+
+            <div class="money-results">
+
+                <div class="money-box">
+                    <span>قيمة العميل بالدينار</span>
+                    <strong id="resultJod">0 د.أ</strong>
+                </div>
+
+                <div class="money-box">
+                    <span>قيمة العميل بالدولار</span>
+                    <strong id="resultUsd">$0</strong>
+                </div>
+
+            </div>
+
+
+            <div class="calculation-note" id="calculationNote"></div>
+
+
+            <div class="result-actions">
+
+                <button class="primary-small" id="saveOperationBtn">
+                    حفظ العملية
+                </button>
+
+                <button class="secondary-small" id="copyResultBtn">
+                    نسخ النتيجة
+                </button>
+
+                <button class="danger-small" id="clearResultBtn">
+                    مسح
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- جدول VIP -->
+    <section class="card vip-table-card">
+
+        <div class="section-title">
+            <span>04</span>
+            <div>
+                <h2>جدول مستويات VIP</h2>
+                <p>المعلومات المرجعية المستخدمة في الحاسبة</p>
+            </div>
+        </div>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>المستوى</th>
+                        <th>إجمالي الشحن</th>
+                        <th>الترقي للمستوى</th>
+                        <th>التثبيت</th>
+                    </tr>
+                </thead>
+
+                <tbody id="vipTableBody"></tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <!-- سجل العملاء -->
+    <section class="card history-card">
+
+        <div class="section-title">
+            <span>05</span>
+            <div>
+                <h2>سجل العملاء والعمليات</h2>
+                <p>يتم الحفظ محليًا داخل المتصفح</p>
+            </div>
+        </div>
+
+
+        <div class="history-tools">
+
+            <div class="field">
+                <label for="historySearch">بحث عن عميل</label>
+
+                <input
+                    id="historySearch"
+                    type="text"
+                    placeholder="ID أو اسم العميل"
+                >
+            </div>
+
+            <button class="danger-small" id="clearHistoryBtn">
+                حذف السجل بالكامل
+            </button>
+
+        </div>
+
+
+        <div id="historyList" class="history-list"></div>
+
+    </section>
+
+</main>
+
+
+<footer>
+
+    <div class="footer-brand">
+        <strong>مجلس القمة للشحن</strong>
+        <span>حاسبة VIP والشحن الصافي</span>
+    </div>
+
+    <div class="developer">
+        تم تطوير هذا الموقع بواسطة
+        <strong>F90 أف تسعين للخدمات الرقمية</strong>
+        <span>Instagram: f90.xd</span>
+    </div>
+
+    <div class="contacts">
+
+        <div>
+            <span>وكيل الشحن غليص</span>
+            <strong>ID: 14935693</strong>
+        </div>
+
+        <div>
+            <span>F90</span>
+            <strong>ID: 31991930</strong>
+        </div>
+
+        <div>
+            <span>حساب الداعم JOR</span>
+            <strong>ID: 12221042</strong>
+        </div>
+
+        <div>
+            <span>لورد</span>
+            <strong>ID: 12221042</strong>
+        </div>
+
+        <div>
+            <span>واتساب غليص</span>
+            <strong>+963938722013</strong>
+        </div>
+
+        <div>
+            <span>واتساب F90</span>
+            <strong>+970568181910</strong>
+        </div>
+
+        <div>
+            <span>واتساب لورد</span>
+            <strong>+962775630834</strong>
+        </div>
+
+    </div>
+
+    <div class="copyright">
+        جميع الحقوق محفوظة © <span id="currentYear"></span>
+    </div>
+
+</footer>
+
+
+<script src="script.js"></script>
+
+</body>
+  </html>
