@@ -1,959 +1,1220 @@
 /* =========================================================
    مجلس القمة للشحن
-   VIP Calculator - F90
+   حاسبة VIP
    ========================================================= */
 
-/* =========================
-   جدول VIP
-   required = XP المطلوبة للانتقال من المستوى السابق
-   maintain = XP المطلوبة لتثبيت المستوى
-   ========================= */
 
-const VIP_LEVELS = {
-    1: {
-        required: 50000,
-        maintain: 30000
-    },
-    2: {
-        required: 50000,
-        maintain: 30000
-    },
-    3: {
-        required: 100000,
-        maintain: 90000
-    },
-    4: {
-        required: 800000,
-        maintain: 500000
-    },
-    5: {
-        required: 2000000,
-        maintain: 1300000
-    },
-    6: {
-        required: 4000000,
-        maintain: 2600000
-    },
-    7: {
-        required: 7000000,
-        maintain: 4500000
-    },
-    8: {
-        required: 12000000,
-        maintain: 7800000
-    },
-    9: {
-        required: 16000000,
-        maintain: 11000000
-    },
-    10: {
-        required: 20000000,
-        maintain: 14000000
-    },
-    11: {
-        required: 40000000,
-        maintain: 28000000
-    },
-    12: {
-        required: 118000000,
-        maintain: 83000000
-    },
-    13: {
-        required: 210000000,
-        maintain: 150000000
-    },
-    14: {
-        required: 390000000,
-        maintain: 310000000
-    },
-    15: {
-        required: 1000000000,
-        maintain: 700000000
-    },
-    16: {
-        required: 2000000000,
-        maintain: 1400000000
-    },
-    17: {
-        required: 3500000000,
-        maintain: 3000000000
-    },
-    18: {
-        required: 4500000000,
-        maintain: 4000000000
-    },
-    19: {
-        required: 5500000000,
-        maintain: 5000000000
-    },
-    20: {
-        required: 10000000000,
-        maintain: 9000000000
-    }
+/* =========================================================
+   بيانات VIP الأساسية
+   =========================================================
+
+   required:
+   نقاط الخبرة المطلوبة للانتقال إلى هذا المستوى.
+
+   maintain:
+   نقاط الخبرة المطلوبة لتثبيت هذا المستوى.
+   ========================================================= */
+
+const DEFAULT_VIP = {
+
+    1:  { required: 50000,      maintain: 30000 },
+    2:  { required: 50000,      maintain: 30000 },
+    3:  { required: 100000,     maintain: 90000 },
+    4:  { required: 800000,     maintain: 500000 },
+    5:  { required: 2000000,    maintain: 1300000 },
+    6:  { required: 4000000,    maintain: 2600000 },
+    7:  { required: 7000000,    maintain: 4500000 },
+    8:  { required: 12000000,   maintain: 7800000 },
+    9:  { required: 16000000,   maintain: 11000000 },
+    10: { required: 20000000,   maintain: 14000000 },
+    11: { required: 40000000,   maintain: 28000000 },
+    12: { required: 118000000,  maintain: 83000000 },
+    13: { required: 210000000,  maintain: 150000000 },
+    14: { required: 390000000,  maintain: 310000000 },
+    15: { required: 1000000000, maintain: 700000000 },
+    16: { required: 2000000000, maintain: 1400000000 },
+    17: { required: 3500000000, maintain: 3000000000 },
+    18: { required: 4500000000, maintain: 4000000000 },
+    19: { required: 5500000000, maintain: 5000000000 },
+    20: { required: 10000000000, maintain: 9000000000 }
+
 };
 
 
-/* =========================
-   أدوات الأرقام
-   ========================= */
+/* =========================================================
+   تحميل قيم VIP المعدلة
+   ========================================================= */
 
-function toNumber(value) {
-    if (value === null || value === undefined || value === "") {
-        return 0;
+let vipData = loadVIPData();
+
+
+function loadVIPData() {
+
+    try {
+
+        const saved =
+            localStorage.getItem("summit_vip_values");
+
+        if (saved) {
+
+            const parsed = JSON.parse(saved);
+
+            return {
+                ...DEFAULT_VIP,
+                ...parsed
+            };
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
     }
 
-    if (typeof value === "number") {
-        return Number.isFinite(value) ? value : 0;
+    return JSON.parse(
+        JSON.stringify(DEFAULT_VIP)
+    );
+}
+
+
+/* =========================================================
+   حفظ VIP
+   ========================================================= */
+
+function saveVIPData() {
+
+    localStorage.setItem(
+        "summit_vip_values",
+        JSON.stringify(vipData)
+    );
+}
+
+
+/* =========================================================
+   الأرقام
+   ========================================================= */
+
+function number(value) {
+
+    if (
+        value === null ||
+        value === undefined ||
+        value === ""
+    ) {
+        return 0;
     }
 
     return Number(
         String(value)
             .replace(/,/g, "")
-            .replace(/\s/g, "")
             .replace(/[^\d.-]/g, "")
     ) || 0;
 }
 
 
-function formatNumber(value, decimals = 0) {
-    const number = toNumber(value);
+function format(value, decimals = 0) {
 
-    return number.toLocaleString("en-US", {
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals
-    });
+    return number(value).toLocaleString(
+        "en-US",
+        {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
+        }
+    );
 }
 
 
-/* =========================
-   حساب قيمة الانتقال
-   =========================
+/* =========================================================
+   إنشاء قوائم VIP
+   ========================================================= */
 
-   مهم:
+function createVipLists() {
 
-   المستخدم قد يكون داخل المستوى الحالي،
-   لذلك أول انتقال لا نأخذه من جدول VIP.
+    const current =
+        document.getElementById("currentVip");
 
-   مثال:
+    const target =
+        document.getElementById("targetVip");
 
-   VIP الحالي = 10
-   الناقص للوصول إلى 11 = 36,000,000
-   الهدف = 13
 
-   الحساب:
+    current.innerHTML = "";
 
-   10 → 11 = 36M   ← القيمة التي أدخلتها أنت
-   11 → 12 = 118M  ← تلقائي
-   12 → 13 = 210M  ← تلقائي
+    target.innerHTML = "";
 
-   الإجمالي = 364M
-   ========================= */
 
-function calculateProgression(
-    currentLevel,
-    targetLevel,
-    currentMissing
-) {
-    currentLevel = Math.floor(toNumber(currentLevel));
-    targetLevel = Math.floor(toNumber(targetLevel));
-    currentMissing = toNumber(currentMissing);
+    for (let i = 1; i <= 20; i++) {
 
-    if (currentLevel < 1) currentLevel = 1;
-    if (targetLevel > 20) targetLevel = 20;
+        current.innerHTML += `
+            <option value="${i}">
+                VIP ${i}
+            </option>
+        `;
 
-    if (targetLevel <= currentLevel) {
-        return {
-            totalWithoutMaintain: 0,
-            levels: []
-        };
+        target.innerHTML += `
+            <option value="${i}">
+                VIP ${i}
+            </option>
+        `;
     }
 
-    const levels = [];
 
-    /* أول مستوى:
-       نستخدم النقص الذي أدخله المستخدم */
-    levels.push({
-        from: currentLevel,
-        to: currentLevel + 1,
-        amount: currentMissing
-    });
+    current.value = "1";
+    target.value = "2";
+}
 
-    let total = currentMissing;
 
-    /* باقي المستويات:
-       تؤخذ تلقائياً من جدول VIP */
-    for (
-        let level = currentLevel + 2;
-        level <= targetLevel;
-        level++
-    ) {
-        const data = VIP_LEVELS[level];
+/* =========================================================
+   جدول VIP السفلي
+   ========================================================= */
 
-        if (!data) continue;
+function renderVipTable() {
 
-        total += data.required;
+    const table =
+        document.getElementById("vipTable");
 
-        levels.push({
-            from: level - 1,
-            to: level,
-            amount: data.required
+    table.innerHTML = "";
+
+
+    for (let i = 1; i <= 20; i++) {
+
+        const item = vipData[i];
+
+        const total =
+            calculateVipTotal(i);
+
+
+        const row =
+            document.createElement("tr");
+
+
+        row.innerHTML = `
+
+            <td>
+                <strong>VIP ${i}</strong>
+            </td>
+
+            <td>
+                ${format(total)}
+            </td>
+
+            <td>
+                ${format(item.required)}
+            </td>
+
+            <td>
+                ${format(item.maintain)}
+            </td>
+
+        `;
+
+
+        table.appendChild(row);
+    }
+}
+
+
+/* =========================================================
+   إجمالي الشحن للوصول من VIP 1
+   ========================================================= */
+
+function calculateVipTotal(level) {
+
+    let total = 0;
+
+    for (let i = 1; i <= level; i++) {
+
+        total += number(
+            vipData[i]?.required
+        );
+    }
+
+    return total;
+}
+
+
+/* =========================================================
+   محرر قيم VIP
+   ========================================================= */
+
+function renderVipEditor() {
+
+    const container =
+        document.getElementById("editVip");
+
+    container.innerHTML = "";
+
+
+    for (let i = 1; i <= 20; i++) {
+
+        const item = vipData[i];
+
+
+        const row =
+            document.createElement("div");
+
+        row.className = "edit-row";
+
+
+        row.innerHTML = `
+
+            <div class="level">
+                VIP ${i}
+            </div>
+
+            <input
+                type="number"
+                min="0"
+                data-required="${i}"
+                value="${item.required}"
+                title="قيمة الترقية">
+
+            <input
+                type="number"
+                min="0"
+                data-maintain="${i}"
+                value="${item.maintain}"
+                title="قيمة التثبيت">
+
+        `;
+
+
+        container.appendChild(row);
+    }
+
+
+    container
+        .querySelectorAll("input")
+        .forEach(input => {
+
+            input.addEventListener(
+                "input",
+                function () {
+
+                    if (this.dataset.required) {
+
+                        const level =
+                            this.dataset.required;
+
+                        vipData[level].required =
+                            number(this.value);
+                    }
+
+
+                    if (this.dataset.maintain) {
+
+                        const level =
+                            this.dataset.maintain;
+
+                        vipData[level].maintain =
+                            number(this.value);
+                    }
+
+
+                    saveVIPData();
+
+                    renderVipTable();
+
+                    calculate();
+
+                }
+            );
+
         });
-    }
-
-    return {
-        totalWithoutMaintain: total,
-        levels
-    };
 }
 
 
-/* =========================
-   حساب التثبيت
-   =========================
-
-   إذا أراد المستخدم الوصول إلى المستوى
-   وتثبيته، نضيف قيمة maintain الخاصة
-   بالمستوى الهدف.
+/* =========================================================
+   الحسبة الأساسية
+   =========================================================
 
    مثال:
 
-   الوصول إلى VIP 11 = 80M
-   تثبيت VIP 11 = 28M
+   الحالي 10
+   الهدف 13
+   الناقص الحالي 36M
 
-   الإجمالي = 108M
-   ========================= */
+   10 → 11 = 36M
+   11 → 12 = 118M
+   12 → 13 = 210M
 
-function calculateMaintain(targetLevel) {
-    targetLevel = Math.floor(toNumber(targetLevel));
+   المجموع = 364M
 
-    if (!VIP_LEVELS[targetLevel]) {
-        return 0;
-    }
+   إذا ×5:
 
-    return VIP_LEVELS[targetLevel].maintain;
-}
+   364M ÷ 5 = 72.8M شحن فعلي
 
+   إذا التثبيت مفعل:
 
-/* =========================
-   حساب الشحن الفعلي
-   =========================
+   + تثبيت VIP 13
+   ========================================================= */
 
-   إذا العرض ×5:
+function calculate() {
 
-   المطلوب داخل نقاط VIP = 108M
+    const current =
+        number(
+            document.getElementById(
+                "currentVip"
+            ).value
+        );
 
-   الشحن الفعلي:
+    const target =
+        number(
+            document.getElementById(
+                "targetVip"
+            ).value
+        );
 
-   108M ÷ 5 = 21.6M
-   ========================= */
+    const currentMissing =
+        number(
+            document.getElementById(
+                "currentMissing"
+            ).value
+        );
 
-function calculateActualCharge(vipPoints, multiplier) {
-    vipPoints = toNumber(vipPoints);
-    multiplier = toNumber(multiplier);
+    const multiplier =
+        number(
+            document.getElementById(
+                "multiplier"
+            ).value
+        ) || 1;
 
-    if (multiplier <= 0) {
-        return 0;
-    }
+    const supportPerMillion =
+        number(
+            document.getElementById(
+                "supportPerMillion"
+            ).value
+        );
 
-    return vipPoints / multiplier;
-}
+    const jodPrice =
+        number(
+            document.getElementById(
+                "jodPrice"
+            ).value
+        );
 
+    const usdPrice =
+        number(
+            document.getElementById(
+                "usdPrice"
+            ).value
+        );
 
-/* =========================
-   حساب الدعم
-   =========================
-
-   القيمة الافتراضية:
-
-   كل 1,000,000 شحن
-   يحتاج 130,000 دعم
-
-   لكن القيمة قابلة للتعديل.
-
-   مثال:
-
-   21.6M × 130,000 / 1M
-   = 2,808,000 دعم
-   ========================= */
-
-function calculateSupport(actualCharge, supportPerMillion) {
-    actualCharge = toNumber(actualCharge);
-    supportPerMillion = toNumber(supportPerMillion);
-
-    return (actualCharge / 1000000) * supportPerMillion;
-}
-
-
-/* =========================
-   تحويل الدعم إلى دينار
-   ========================= */
-
-function calculateJOD(supportAmount, supportRate) {
-    supportAmount = toNumber(supportAmount);
-    supportRate = toNumber(supportRate);
-
-    if (supportRate <= 0) {
-        return 0;
-    }
-
-    return (supportAmount / supportRate);
-}
+    const maintain =
+        document.getElementById(
+            "maintain"
+        ).checked;
 
 
-/* =========================
-   تحويل الدعم إلى دولار
-   ========================= */
+    /* -----------------------------------------
+       إذا الهدف نفس المستوى
+       ----------------------------------------- */
 
-function calculateUSD(supportAmount, supportRate) {
-    supportAmount = toNumber(supportAmount);
-    supportRate = toNumber(supportRate);
+    if (target < current) {
 
-    if (supportRate <= 0) {
-        return 0;
-    }
+        alert(
+            "مستوى الهدف يجب أن يكون أعلى أو مساويًا للمستوى الحالي."
+        );
 
-    return (supportAmount / supportRate);
-}
-
-
-/* =========================
-   الحساب الرئيسي
-   ========================= */
-
-function calculateVIP() {
-
-    const currentLevel = toNumber(
-        document.getElementById("currentLevel")?.value
-    );
-
-    const targetLevel = toNumber(
-        document.getElementById("targetLevel")?.value
-    );
-
-    const currentMissing = toNumber(
-        document.getElementById("currentMissing")?.value
-    );
-
-    const multiplier = toNumber(
-        document.getElementById("vipMultiplier")?.value
-    );
-
-    const supportPerMillion = toNumber(
-        document.getElementById("supportPerMillion")?.value
-    );
-
-    const jodPerSupport = toNumber(
-        document.getElementById("jodRate")?.value
-    );
-
-    const usdPerSupport = toNumber(
-        document.getElementById("usdRate")?.value
-    );
-
-    const maintainEnabled =
-        document.getElementById("maintainLevel")?.checked || false;
-
-
-    /* -------------------------
-       التحقق
-       ------------------------- */
-
-    if (!currentLevel || currentLevel < 1) {
-        showMessage("أدخل مستوى VIP الحالي");
-        return;
-    }
-
-    if (!targetLevel || targetLevel < currentLevel) {
-        showMessage("اختر مستوى الهدف بشكل صحيح");
-        return;
-    }
-
-    if (targetLevel > 20) {
-        showMessage("المستوى الأعلى المتاح هو VIP 20");
-        return;
-    }
-
-    if (targetLevel > currentLevel && currentMissing <= 0) {
-        showMessage("أدخل قيمة النقص الحالية للوصول للمستوى التالي");
-        return;
-    }
-
-    if (multiplier <= 0) {
-        showMessage("أدخل عرض VIP صحيح مثل ×5");
         return;
     }
 
 
-    /* -------------------------
-       حساب الوصول بدون تثبيت
-       ------------------------- */
+    /* -----------------------------------------
+       الوصول بدون تثبيت
+       ----------------------------------------- */
 
-    const progression = calculateProgression(
-        currentLevel,
-        targetLevel,
-        currentMissing
-    );
-
-    const withoutMaintain =
-        progression.totalWithoutMaintain;
+    let withoutMaintain = 0;
 
 
-    /* -------------------------
-       حساب التثبيت
-       ------------------------- */
+    /*
+       إذا كان هناك انتقال:
+
+       نستخدم القيمة التي أدخلها المستخدم
+       لأول انتقال فقط.
+    */
+
+    if (target > current) {
+
+        withoutMaintain =
+            currentMissing;
+
+
+        /*
+           باقي المستويات تحسب تلقائيًا
+           من جدول VIP.
+        */
+
+        for (
+            let level = current + 2;
+            level <= target;
+            level++
+        ) {
+
+            withoutMaintain +=
+                number(
+                    vipData[level]?.required
+                );
+        }
+
+    }
+
+
+    /* -----------------------------------------
+       قيمة التثبيت
+       ----------------------------------------- */
 
     let maintainAmount = 0;
 
-    if (maintainEnabled) {
-        maintainAmount = calculateMaintain(targetLevel);
+
+    if (maintain) {
+
+        maintainAmount =
+            number(
+                vipData[target]?.maintain
+            );
     }
 
 
-    /* -------------------------
-       الإجمالي مع التثبيت
-       ------------------------- */
+    /* -----------------------------------------
+       الإجمالي النهائي لنقاط VIP
+       ----------------------------------------- */
 
-    const totalVIPPoints =
-        withoutMaintain + maintainAmount;
-
-
-    /* -------------------------
-       الشحن الفعلي بدون تثبيت
-       ------------------------- */
-
-    const actualChargeWithoutMaintain =
-        calculateActualCharge(
-            withoutMaintain,
-            multiplier
-        );
+    const total =
+        withoutMaintain +
+        maintainAmount;
 
 
-    /* -------------------------
-       الشحن الفعلي مع التثبيت
-       ------------------------- */
+    /* -----------------------------------------
+       الشحن الفعلي
+       -----------------------------------------
 
-    const actualChargeWithMaintain =
-        calculateActualCharge(
-            totalVIPPoints,
-            multiplier
-        );
+       النقاط المطلوبة ÷ العرض
 
+       مثال:
 
-    /* -------------------------
-       الدعم بدون تثبيت
-       ------------------------- */
+       108M ÷ 5
+       = 21.6M
+       ----------------------------------------- */
 
-    const supportWithoutMaintain =
-        calculateSupport(
-            actualChargeWithoutMaintain,
-            supportPerMillion
-        );
+    const chargeWithout =
+        withoutMaintain /
+        multiplier;
 
 
-    /* -------------------------
-       الدعم مع التثبيت
-       ------------------------- */
-
-    const supportWithMaintain =
-        calculateSupport(
-            actualChargeWithMaintain,
-            supportPerMillion
-        );
+    const chargeWith =
+        total /
+        multiplier;
 
 
-    /* -------------------------
-       الفرق الناتج عن التثبيت
-       ------------------------- */
+    /* -----------------------------------------
+       الدعم المطلوب
+       -----------------------------------------
 
-    const maintainActualCharge =
-        actualChargeWithMaintain -
-        actualChargeWithoutMaintain;
+       كل مليون شحن له قيمة دعم
+       قابلة للتعديل.
+       ----------------------------------------- */
 
-    const maintainSupport =
-        supportWithMaintain -
-        supportWithoutMaintain;
+    const supportWithout =
+        (chargeWithout / 1000000) *
+        supportPerMillion;
 
 
-    /* -------------------------
-       الدينار والدولار
-       ------------------------- */
+    const supportWith =
+        (chargeWith / 1000000) *
+        supportPerMillion;
 
-    const jodWithoutMaintain =
-        jodPerSupport > 0
-            ? calculateJOD(
-                supportWithoutMaintain,
-                jodPerSupport
-            )
-            : 0;
 
-    const usdWithoutMaintain =
-        usdPerSupport > 0
-            ? calculateUSD(
-                supportWithoutMaintain,
-                usdPerSupport
-            )
+    /* -----------------------------------------
+       الدينار
+
+       130,000 دعم = 11 دينار افتراضيًا
+
+       إذا غيرت 130,000:
+       الحسبة تتغير تلقائيًا.
+       ----------------------------------------- */
+
+    const jodWithout =
+        supportPerMillion > 0
+            ? (supportWithout / supportPerMillion) *
+              jodPrice
             : 0;
 
 
-    const jodWithMaintain =
-        jodPerSupport > 0
-            ? calculateJOD(
-                supportWithMaintain,
-                jodPerSupport
-            )
-            : 0;
-
-    const usdWithMaintain =
-        usdPerSupport > 0
-            ? calculateUSD(
-                supportWithMaintain,
-                usdPerSupport
-            )
+    const jodWith =
+        supportPerMillion > 0
+            ? (supportWith / supportPerMillion) *
+              jodPrice
             : 0;
 
 
-    /* -------------------------
-       إخراج النتائج
-       ------------------------- */
+    /* -----------------------------------------
+       الدولار
+       ----------------------------------------- */
 
-    setValue(
-        "resultWithoutMaintain",
-        formatNumber(withoutMaintain)
+    const usdWithout =
+        supportPerMillion > 0
+            ? (supportWithout / supportPerMillion) *
+              usdPrice
+            : 0;
+
+
+    const usdWith =
+        supportPerMillion > 0
+            ? (supportWith / supportPerMillion) *
+              usdPrice
+            : 0;
+
+
+    /* -----------------------------------------
+       الإجمالي الكامل
+
+       المقصود هنا القيمة النقدية
+       بالدينار + الدولار بشكل منفصل.
+
+       لا نجمع الدينار والدولار مع بعض
+       لأنهما عملتان مختلفتان.
+       ----------------------------------------- */
+
+    const fullTotal =
+        jodWith;
+
+
+    /* -----------------------------------------
+       عرض النتائج
+       ----------------------------------------- */
+
+    setText(
+        "resultWithout",
+        format(withoutMaintain)
     );
 
-    setValue(
+    setText(
         "resultMaintain",
-        formatNumber(maintainAmount)
+        format(maintainAmount)
     );
 
-    setValue(
+    setText(
         "resultTotal",
-        formatNumber(totalVIPPoints)
+        format(total)
     );
 
-    setValue(
-        "chargeWithoutMaintain",
-        formatNumber(actualChargeWithoutMaintain)
+    setText(
+        "chargeWithout",
+        format(chargeWithout)
     );
 
-    setValue(
-        "chargeWithMaintain",
-        formatNumber(actualChargeWithMaintain)
+    setText(
+        "chargeWith",
+        format(chargeWith)
     );
 
-    setValue(
-        "supportWithoutMaintain",
-        formatNumber(supportWithoutMaintain)
+    setText(
+        "supportWithout",
+        format(supportWithout)
     );
 
-    setValue(
-        "supportWithMaintain",
-        formatNumber(supportWithMaintain)
+    setText(
+        "supportWith",
+        format(supportWith)
     );
 
-    setValue(
-        "maintainSupport",
-        formatNumber(maintainSupport)
+    setText(
+        "jodWithout",
+        format(jodWithout, 2)
     );
 
-    setValue(
-        "maintainActualCharge",
-        formatNumber(maintainActualCharge)
+    setText(
+        "usdWithout",
+        format(usdWithout, 2)
     );
 
-    setValue(
-        "jodWithoutMaintain",
-        formatNumber(jodWithoutMaintain, 2)
+    setText(
+        "jodWith",
+        format(jodWith, 2)
     );
 
-    setValue(
-        "usdWithoutMaintain",
-        formatNumber(usdWithoutMaintain, 2)
+    setText(
+        "usdWith",
+        format(usdWith, 2)
     );
 
-    setValue(
-        "jodWithMaintain",
-        formatNumber(jodWithMaintain, 2)
-    );
-
-    setValue(
-        "usdWithMaintain",
-        formatNumber(usdWithMaintain, 2)
+    setText(
+        "fullTotal",
+        format(fullTotal, 2)
     );
 
 
-    /* -------------------------
-       تفاصيل المراحل
-       ------------------------- */
-
-    renderProgression(progression.levels);
-
-
-    /* -------------------------
-       عرض VIP الهدف
-       ------------------------- */
-
-    setValue(
-        "resultTargetLevel",
-        `VIP ${targetLevel}`
-    );
-
-
-    /* -------------------------
-       حفظ آخر عملية
-       ------------------------- */
-
-    saveCurrentCalculation({
-        currentLevel,
-        targetLevel,
+    renderSteps(
+        current,
+        target,
         currentMissing,
-        multiplier,
-        supportPerMillion,
-        maintainEnabled,
-        withoutMaintain,
-        maintainAmount,
-        totalVIPPoints,
-        actualChargeWithoutMaintain,
-        actualChargeWithMaintain,
-        supportWithoutMaintain,
-        supportWithMaintain,
-        jodWithoutMaintain,
-        usdWithoutMaintain,
-        jodWithMaintain,
-        usdWithMaintain,
-        date: new Date().toISOString()
-    });
+        maintain
+    );
 }
 
 
-/* =========================
-   وضع النتائج داخل الصفحة
-   ========================= */
+/* =========================================================
+   تفاصيل المستويات
+   ========================================================= */
 
-function setValue(id, value) {
+function renderSteps(
+    current,
+    target,
+    currentMissing,
+    maintain
+) {
 
-    const element = document.getElementById(id);
+    const container =
+        document.getElementById(
+            "steps"
+        );
 
-    if (!element) return;
+    container.innerHTML = "";
 
-    if (
-        element.tagName === "INPUT" ||
-        element.tagName === "TEXTAREA"
+
+    if (target <= current) {
+
+        container.innerHTML = `
+            <div class="step">
+                <span>لا يوجد انتقال لمستوى آخر</span>
+                <strong>0</strong>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    /* أول انتقال */
+
+    let row =
+        document.createElement("div");
+
+    row.className = "step";
+
+    row.innerHTML = `
+
+        <span>
+            VIP ${current}
+            →
+            VIP ${current + 1}
+        </span>
+
+        <strong>
+            ${format(currentMissing)}
+        </strong>
+
+    `;
+
+    container.appendChild(row);
+
+
+    /* باقي الانتقالات */
+
+    for (
+        let level = current + 2;
+        level <= target;
+        level++
     ) {
-        element.value = value;
-    } else {
+
+        const amount =
+            number(
+                vipData[level]?.required
+            );
+
+
+        row =
+            document.createElement("div");
+
+        row.className = "step";
+
+        row.innerHTML = `
+
+            <span>
+                VIP ${level - 1}
+                →
+                VIP ${level}
+            </span>
+
+            <strong>
+                ${format(amount)}
+            </strong>
+
+        `;
+
+        container.appendChild(row);
+    }
+
+
+    /* التثبيت */
+
+    if (maintain) {
+
+        const maintainAmount =
+            number(
+                vipData[target]?.maintain
+            );
+
+
+        row =
+            document.createElement("div");
+
+        row.className = "step";
+
+        row.innerHTML = `
+
+            <span>
+                تثبيت VIP ${target}
+            </span>
+
+            <strong>
+                + ${format(maintainAmount)}
+            </strong>
+
+        `;
+
+        container.appendChild(row);
+    }
+}
+
+
+/* =========================================================
+   وضع النص
+   ========================================================= */
+
+function setText(id, value) {
+
+    const element =
+        document.getElementById(id);
+
+    if (element) {
         element.textContent = value;
     }
 }
 
 
-/* =========================
-   تفاصيل الانتقال
-   ========================= */
+/* =========================================================
+   سجل العملاء
+   ========================================================= */
 
-function renderProgression(levels) {
+function getHistory() {
 
-    const container =
-        document.getElementById("progressionDetails");
+    try {
 
-    if (!container) return;
+        return JSON.parse(
+            localStorage.getItem(
+                "summit_clients"
+            )
+        ) || [];
 
-    container.innerHTML = "";
+    } catch {
 
-    levels.forEach(item => {
-
-        const row = document.createElement("div");
-
-        row.className = "progression-row";
-
-        row.innerHTML = `
-            <span>VIP ${item.from} → VIP ${item.to}</span>
-            <strong>${formatNumber(item.amount)}</strong>
-        `;
-
-        container.appendChild(row);
-    });
+        return [];
+    }
 }
 
 
-/* =========================
-   الرسائل
-   ========================= */
+function saveHistory(data) {
 
-function showMessage(message) {
+    localStorage.setItem(
+        "summit_clients",
+        JSON.stringify(data)
+    );
+}
 
-    const element =
-        document.getElementById("message");
 
-    if (element) {
-        element.textContent = message;
-        element.classList.add("show");
+/* =========================================================
+   حفظ العميل الحالي
+   ========================================================= */
 
-        setTimeout(() => {
-            element.classList.remove("show");
-        }, 3000);
+function saveClient() {
+
+    const name =
+        document.getElementById(
+            "clientName"
+        ).value.trim();
+
+    const id =
+        document.getElementById(
+            "clientId"
+        ).value.trim();
+
+
+    if (!id) {
+
+        alert(
+            "أدخل ID الحساب الأساسي للعميل أولاً."
+        );
 
         return;
     }
 
-    alert(message);
-}
+
+    const record = {
+
+        id: id,
+
+        name:
+            name || "بدون اسم",
+
+        currentVip:
+            number(
+                document.getElementById(
+                    "currentVip"
+                ).value
+            ),
+
+        targetVip:
+            number(
+                document.getElementById(
+                    "targetVip"
+                ).value
+            ),
+
+        currentMissing:
+            number(
+                document.getElementById(
+                    "currentMissing"
+                ).value
+            ),
+
+        multiplier:
+            number(
+                document.getElementById(
+                    "multiplier"
+                ).value
+            ),
+
+        maintain:
+            document.getElementById(
+                "maintain"
+            ).checked,
+
+        savedAt:
+            new Date().toLocaleString(
+                "ar-EG"
+            )
+
+    };
 
 
-/* =========================
-   حفظ آخر عملية
-   ========================= */
+    const history =
+        getHistory();
 
-function saveCurrentCalculation(data) {
 
-    try {
+    /*
+       إذا كان نفس ID موجودًا،
+       يتم تحديث بياناته بدل إنشاء
+       نسخة مكررة.
+    */
 
-        localStorage.setItem(
-            "lastVIPCalculation",
-            JSON.stringify(data)
+    const existing =
+        history.findIndex(
+            item => item.id === id
         );
 
-    } catch (error) {
 
-        console.error(
-            "تعذر حفظ العملية:",
-            error
-        );
+    if (existing !== -1) {
 
-    }
-}
+        history[existing] = {
+            ...history[existing],
+            ...record
+        };
 
+    } else {
 
-/* =========================
-   استرجاع آخر عملية
-   ========================= */
-
-function loadLastCalculation() {
-
-    try {
-
-        const saved =
-            localStorage.getItem(
-                "lastVIPCalculation"
-            );
-
-        if (!saved) return;
-
-        const data = JSON.parse(saved);
-
-        setValue(
-            "currentLevel",
-            data.currentLevel
-        );
-
-        setValue(
-            "targetLevel",
-            data.targetLevel
-        );
-
-        setValue(
-            "currentMissing",
-            data.currentMissing
-        );
-
-        setValue(
-            "vipMultiplier",
-            data.multiplier
-        );
-
-        setValue(
-            "supportPerMillion",
-            data.supportPerMillion
-        );
-
-    } catch (error) {
-
-        console.error(
-            "تعذر استرجاع العملية:",
-            error
-        );
-
-    }
-}
-
-
-/* =========================
-   إنشاء قائمة VIP تلقائياً
-   من 1 إلى 20
-   ========================= */
-
-function populateVIPSelects() {
-
-    const current =
-        document.getElementById("currentLevel");
-
-    const target =
-        document.getElementById("targetLevel");
-
-    if (current) {
-
-        current.innerHTML =
-            '<option value="">اختر VIP الحالي</option>';
-
-        for (let i = 1; i <= 20; i++) {
-
-            current.innerHTML += `
-                <option value="${i}">
-                    VIP ${i}
-                </option>
-            `;
-        }
+        history.unshift(record);
     }
 
 
-    if (target) {
+    saveHistory(history);
 
-        target.innerHTML =
-            '<option value="">اختر VIP الهدف</option>';
+    renderHistory();
 
-        for (let i = 1; i <= 20; i++) {
-
-            target.innerHTML += `
-                <option value="${i}">
-                    VIP ${i}
-                </option>
-            `;
-        }
-    }
+    alert(
+        "تم حفظ بيانات العميل."
+    );
 }
 
 
-/* =========================
-   عروض ×1 إلى ×10
-   ========================= */
+/* =========================================================
+   عرض سجل العملاء
+   ========================================================= */
 
-function populateMultipliers() {
+function renderHistory() {
 
-    const select =
-        document.getElementById("vipMultiplier");
+    const container =
+        document.getElementById(
+            "clientHistory"
+        );
 
-    if (!select) return;
+    const history =
+        getHistory();
 
-    select.innerHTML =
-        '<option value="">اختر العرض</option>';
 
-    for (let i = 1; i <= 10; i++) {
+    container.innerHTML = "";
 
-        select.innerHTML += `
-            <option value="${i}">
-                ×${i}
-            </option>
+
+    if (!history.length) {
+
+        container.innerHTML = `
+            <div class="history-empty">
+                لا يوجد عملاء محفوظون حتى الآن.
+            </div>
         `;
+
+        return;
     }
+
+
+    history.forEach(
+        (item, index) => {
+
+            const div =
+                document.createElement("div");
+
+            div.className =
+                "history-item";
+
+
+            div.innerHTML = `
+
+                <div class="history-item-top">
+
+                    <div>
+                        <strong>
+                            ${escapeHtml(item.name)}
+                        </strong>
+
+                        <div>
+                            ID:
+                            ${escapeHtml(item.id)}
+                        </div>
+                    </div>
+
+                    <small>
+                        ${item.savedAt}
+                    </small>
+
+                </div>
+
+                <div>
+                    VIP ${item.currentVip}
+                    →
+                    VIP ${item.targetVip}
+                    |
+                    ×${item.multiplier}
+                    |
+                    ناقص:
+                    ${format(item.currentMissing)}
+                </div>
+
+                <button
+                    style="
+                        margin-top:10px;
+                        padding:8px 12px;
+                        border:1px solid rgba(255,255,255,.1);
+                        border-radius:8px;
+                        background:#0b0e14;
+                        color:#fff;
+                        cursor:pointer;
+                    "
+                    onclick="loadClient(${index})">
+
+                    تحميل بيانات العميل
+
+                </button>
+
+            `;
+
+
+            container.appendChild(div);
+        }
+    );
 }
 
 
-/* =========================
-   عند تغيير VIP الحالي
-   ========================= */
+/* =========================================================
+   تحميل عميل
+   ========================================================= */
 
-function updateTargetLevels() {
+function loadClient(index) {
 
-    const current =
-        toNumber(
-            document.getElementById("currentLevel")?.value
+    const history =
+        getHistory();
+
+    const item =
+        history[index];
+
+    if (!item) return;
+
+
+    document.getElementById(
+        "clientName"
+    ).value = item.name;
+
+
+    document.getElementById(
+        "clientId"
+    ).value = item.id;
+
+
+    document.getElementById(
+        "currentVip"
+    ).value = item.currentVip;
+
+
+    document.getElementById(
+        "targetVip"
+    ).value = item.targetVip;
+
+
+    document.getElementById(
+        "currentMissing"
+    ).value = item.currentMissing;
+
+
+    document.getElementById(
+        "multiplier"
+    ).value = item.multiplier;
+
+
+    document.getElementById(
+        "maintain"
+    ).checked = item.maintain;
+
+
+    calculate();
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+
+/* =========================================================
+   مسح سجل العملاء
+   ========================================================= */
+
+function clearHistory() {
+
+    const answer =
+        confirm(
+            "هل تريد حذف جميع العملاء المحفوظين؟"
         );
 
-    const target =
-        document.getElementById("targetLevel");
+    if (!answer) return;
 
-    if (!target || !current) return;
 
-    [...target.options].forEach(option => {
+    localStorage.removeItem(
+        "summit_clients"
+    );
 
-        if (!option.value) return;
-
-        const level =
-            Number(option.value);
-
-        option.disabled =
-            level <= current;
-
-    });
-
-    if (
-        target.value &&
-        Number(target.value) <= current
-    ) {
-        target.value = "";
-    }
+    renderHistory();
 }
 
 
-/* =========================
-   عند تشغيل الصفحة
-   ========================= */
+/* =========================================================
+   حماية عرض اسم العميل وID
+   ========================================================= */
+
+function escapeHtml(value) {
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+
+/* =========================================================
+   الأحداث
+   ========================================================= */
 
 document.addEventListener(
     "DOMContentLoaded",
-    () => {
+    function () {
 
-        populateVIPSelects();
+        createVipLists();
 
-        populateMultipliers();
+        renderVipTable();
 
-        loadLastCalculation();
+        renderVipEditor();
 
-
-        const current =
-            document.getElementById("currentLevel");
-
-        if (current) {
-
-            current.addEventListener(
-                "change",
-                updateTargetLevels
-            );
-        }
+        renderHistory();
 
 
-        const calculateButton =
-            document.getElementById("calculateBtn");
+        /* زر الحساب */
 
-        if (calculateButton) {
-
-            calculateButton.addEventListener(
-                "click",
-                calculateVIP
-            );
-        }
+        document.getElementById(
+            "calculateBtn"
+        ).addEventListener(
+            "click",
+            calculate
+        );
 
 
-        /* الحساب تلقائياً عند تغيير أي خانة */
+        /* الحسبة تلقائيًا */
 
         const fields = [
-            "currentLevel",
-            "targetLevel",
+
+            "currentVip",
+            "targetVip",
             "currentMissing",
-            "vipMultiplier",
+            "multiplier",
             "supportPerMillion",
-            "jodRate",
-            "usdRate",
-            "maintainLevel"
+            "jodPrice",
+            "usdPrice",
+            "maintain"
+
         ];
+
 
         fields.forEach(id => {
 
             const element =
                 document.getElementById(id);
 
-            if (!element) return;
-
             element.addEventListener(
                 "input",
-                calculateVIP
+                calculate
             );
 
             element.addEventListener(
                 "change",
-                calculateVIP
+                calculate
             );
+
         });
+
+
+        /* حفظ العميل */
+
+        document.getElementById(
+            "saveClient"
+        ).addEventListener(
+            "click",
+            saveClient
+        );
+
+
+        /* مسح السجل */
+
+        document.getElementById(
+            "clearHistory"
+        ).addEventListener(
+            "click",
+            clearHistory
+        );
+
+
+        /* أول حسبة */
+
+        calculate();
 
     }
 );
