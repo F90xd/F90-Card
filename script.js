@@ -2,12 +2,12 @@
 
 /* =========================================================
    مجلس القمة للشحن
-   VIP Calculator + Customer Records + Statistics
+   VIP Calculator + Records + Statistics + Calculator
 ========================================================= */
 
 
 /* =========================================================
-   جدول VIP
+   VIP TABLE
 ========================================================= */
 
 const VIP_TABLE = [
@@ -35,7 +35,7 @@ const VIP_TABLE = [
 
 
 /* =========================================================
-   التخزين
+   STORAGE
 ========================================================= */
 
 const STORAGE_KEY = "majlis_alqimma_vip_records_v8";
@@ -43,14 +43,14 @@ const THEME_KEY = "majlis_alqimma_theme_v2";
 
 
 /* =========================================================
-   الاختصار
+   HELPER
 ========================================================= */
 
 const $ = id => document.getElementById(id);
 
 
 /* =========================================================
-   العناصر
+   ELEMENTS
 ========================================================= */
 
 const clientName = $("clientName");
@@ -97,7 +97,7 @@ const clientStatus = $("clientStatus");
 
 
 /* =========================================================
-   الأرقام
+   NUMBER
 ========================================================= */
 
 function number(value) {
@@ -106,16 +106,15 @@ function number(value) {
         return 0;
     }
 
-    const clean =
-        String(value)
-            .replace(/,/g, "")
-            .trim();
+    const cleaned = String(value)
+        .replace(/,/g, "")
+        .trim();
 
-    if (clean === "") {
+    if (cleaned === "") {
         return 0;
     }
 
-    const x = Number(clean);
+    const x = Number(cleaned);
 
     if (!Number.isFinite(x) || x < 0) {
         return 0;
@@ -124,6 +123,10 @@ function number(value) {
     return x;
 }
 
+
+/* =========================================================
+   FORMAT
+========================================================= */
 
 function format(value) {
 
@@ -143,7 +146,7 @@ function formatMoney(value, suffix) {
 
 
 /* =========================================================
-   حماية النص
+   SAFE
 ========================================================= */
 
 function safe(value) {
@@ -158,19 +161,7 @@ function safe(value) {
 
 
 /* =========================================================
-   جدول VIP
-========================================================= */
-
-function getVip(level) {
-
-    return VIP_TABLE.find(
-        row => row.level === Number(level)
-    );
-}
-
-
-/* =========================================================
-   خيارات VIP
+   VIP OPTIONS
 ========================================================= */
 
 function buildVipOptions() {
@@ -184,26 +175,20 @@ function buildVipOptions() {
             document.createElement("option");
 
         currentOption.value = row.level;
-        currentOption.textContent =
-            `VIP ${row.level}`;
+        currentOption.textContent = `VIP ${row.level}`;
 
-        currentVip.appendChild(
-            currentOption
-        );
+        currentVip.appendChild(currentOption);
 
 
         const targetOption =
             document.createElement("option");
 
         targetOption.value = row.level;
-        targetOption.textContent =
-            `VIP ${row.level}`;
+        targetOption.textContent = `VIP ${row.level}`;
 
-        targetVip.appendChild(
-            targetOption
-        );
+        targetVip.appendChild(targetOption);
+
     });
-
 
     currentVip.value = "10";
     targetVip.value = "11";
@@ -211,38 +196,19 @@ function buildVipOptions() {
 
 
 /* =========================================================
-   جدول VIP
+   GET VIP
 ========================================================= */
 
-function renderVipTable() {
+function getVip(level) {
 
-    const tbody = $("vipTable");
-
-    if (!tbody) {
-        return;
-    }
-
-    tbody.innerHTML = "";
-
-    VIP_TABLE.forEach(row => {
-
-        const tr =
-            document.createElement("tr");
-
-        tr.innerHTML = `
-            <td>VIP ${row.level}</td>
-            <td>${format(row.total)}</td>
-            <td>${format(row.upgrade)}</td>
-            <td>${format(row.maintain)}</td>
-        `;
-
-        tbody.appendChild(tr);
-    });
+    return VIP_TABLE.find(
+        row => row.level === Number(level)
+    );
 }
 
 
 /* =========================================================
-   وضع الحساب
+   MODE
 ========================================================= */
 
 function getMode() {
@@ -259,28 +225,41 @@ function getMode() {
 
 
 /* =========================================================
-   خانة القيمة الفعلية
+   FIRST INPUT
 ========================================================= */
 
 function getFirstTransitionInput() {
 
-    return document.querySelector(
+    return transitionList.querySelector(
         ".first-transition-value"
     );
 }
 
 
 /* =========================================================
-   إنشاء الانتقالات
+   حفظ القيمة الحالية قبل إعادة الرسم
 ========================================================= */
 
-function renderTransitions(savedFirstValue = null) {
+let firstTransitionMemory = "";
 
-    const current =
-        Number(currentVip.value);
 
-    const target =
-        Number(targetVip.value);
+/* =========================================================
+   RENDER TRANSITIONS
+========================================================= */
+
+function renderTransitions() {
+
+    const current = Number(currentVip.value);
+    const target = Number(targetVip.value);
+
+    const oldInput =
+        transitionList.querySelector(
+            ".first-transition-value"
+        );
+
+    if (oldInput) {
+        firstTransitionMemory = oldInput.value;
+    }
 
 
     transitionList.innerHTML = "";
@@ -288,13 +267,7 @@ function renderTransitions(savedFirstValue = null) {
 
     if (target <= current) {
 
-        transitionArea.classList.remove(
-            "hidden"
-        );
-
-        targetLockBox.classList.add(
-            "hidden"
-        );
+        transitionArea.classList.remove("hidden");
 
         transitionList.innerHTML = `
             <div class="empty">
@@ -302,47 +275,22 @@ function renderTransitions(savedFirstValue = null) {
             </div>
         `;
 
+        targetLockBox.classList.add("hidden");
+
         calculate();
 
         return;
     }
 
 
-    transitionArea.classList.remove(
-        "hidden"
-    );
-
-
-    const firstTo =
-        current + 1;
+    transitionArea.classList.remove("hidden");
 
 
     /* =====================================================
-       القيمة المحفوظة
+       الخانة الوحيدة التي يكتب فيها المستخدم
     ===================================================== */
 
-    let firstValue = "";
-
-    if (savedFirstValue !== null) {
-
-        firstValue =
-            String(savedFirstValue);
-
-    } else {
-
-        const oldInput =
-            getFirstTransitionInput();
-
-        if (oldInput) {
-            firstValue =
-                oldInput.value;
-        }
-    }
-
-
-    /* =====================================================
-       أول انتقال
-    ===================================================== */
+    const firstTo = current + 1;
 
     const firstBox =
         document.createElement("div");
@@ -351,73 +299,74 @@ function renderTransitions(savedFirstValue = null) {
         "transition first-transition";
 
 
-    const head =
-        document.createElement("div");
+    firstBox.innerHTML = `
 
-    head.className =
-        "transition-head";
+        <div class="transition-head">
 
-    head.innerHTML = `
-        <span>أدخل القيمة الفعلية</span>
-        <strong>
-            VIP ${current} → VIP ${firstTo}
-        </strong>
+            <span>
+                أدخل القيمة الفعلية
+            </span>
+
+            <strong>
+                VIP ${current} → VIP ${firstTo}
+            </strong>
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                المتبقي الفعلي للدخول إلى VIP ${firstTo}
+            </label>
+
+            <input
+                class="first-transition-value"
+                id="firstTransitionInput"
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="أدخل القيمة هنا"
+            >
+
+            <small>
+                هذه هي الخانة الوحيدة التي تحتاج إدخال يدوي.
+            </small>
+
+        </div>
     `;
 
 
-    const field =
-        document.createElement("div");
-
-    field.className =
-        "field";
+    transitionList.appendChild(firstBox);
 
 
-    const label =
-        document.createElement("label");
-
-    label.textContent =
-        `المتبقي الفعلي للدخول إلى VIP ${firstTo}`;
+    const input =
+        transitionList.querySelector(
+            ".first-transition-value"
+        );
 
 
     /*
-    مهم جداً:
-    type="text"
-    وليس number
-    حتى يعمل Backspace والحذف بشكل طبيعي.
+    ========================================================
+    مهم جداً
+
+    لا يوجد هنا:
+    input.value = ...
+    أثناء كل عملية كتابة.
+
+    القيمة توضع مرة واحدة فقط عند إنشاء الخانة.
+    ========================================================
     */
 
-    const input =
-        document.createElement("input");
+    if (
+        firstTransitionMemory !== null &&
+        firstTransitionMemory !== undefined
+    ) {
 
-    input.type = "text";
-    input.inputMode = "decimal";
-    input.autocomplete = "off";
-
-    input.className =
-        "first-transition-value";
-
-    input.placeholder =
-        "أدخل القيمة هنا";
-
-    input.value =
-        firstValue;
-
-
-    const small =
-        document.createElement("small");
-
-    small.textContent =
-        "هذه هي الخانة الوحيدة التي تدخل فيها القيمة يدوياً.";
-
-
-    field.appendChild(label);
-    field.appendChild(input);
-    field.appendChild(small);
-
-    firstBox.appendChild(head);
-    firstBox.appendChild(field);
-
-    transitionList.appendChild(firstBox);
+        input.value =
+            String(firstTransitionMemory);
+    }
 
 
     /* =====================================================
@@ -435,13 +384,11 @@ function renderTransitions(savedFirstValue = null) {
         autoTitle.innerHTML = `
             <span>الحساب التلقائي</span>
             <small>
-                جميع المستويات التالية محسوبة تلقائياً
+                جميع المستويات التالية تحسب تلقائياً
             </small>
         `;
 
-        transitionList.appendChild(
-            autoTitle
-        );
+        transitionList.appendChild(autoTitle);
 
 
         for (
@@ -450,11 +397,15 @@ function renderTransitions(savedFirstValue = null) {
             from++
         ) {
 
-            const to =
-                from + 1;
+            const to = from + 1;
 
             const data =
                 getVip(to);
+
+            const value =
+                data
+                    ? number(data.upgrade)
+                    : 0;
 
 
             const div =
@@ -465,24 +416,28 @@ function renderTransitions(savedFirstValue = null) {
 
 
             div.innerHTML = `
+
                 <div class="transition-head">
-                    <span>تلقائي</span>
+
+                    <span>
+                        تلقائي
+                    </span>
 
                     <strong>
                         VIP ${from} → VIP ${to}
                     </strong>
+
                 </div>
+
 
                 <div class="auto-transition-value">
 
-                    <span>القيمة المحسوبة</span>
+                    <span>
+                        القيمة المحسوبة
+                    </span>
 
                     <strong>
-                        ${format(
-                            data
-                                ? data.upgrade
-                                : 0
-                        )}
+                        ${format(value)}
                     </strong>
 
                 </div>
@@ -501,7 +456,7 @@ function renderTransitions(savedFirstValue = null) {
 
 
 /* =========================================================
-   حساب نقاط الوصول
+   CALCULATE REACH
 ========================================================= */
 
 function calculateReach() {
@@ -518,14 +473,14 @@ function calculateReach() {
     }
 
 
-    const firstInput =
+    const input =
         getFirstTransitionInput();
 
 
     const firstValue =
-        firstInput
-            ? number(firstInput.value)
-            : 0;
+        input
+            ? number(input.value)
+            : number(firstTransitionMemory);
 
 
     let total =
@@ -533,22 +488,17 @@ function calculateReach() {
 
 
     /*
-    مثال:
-
     VIP 2 → VIP 3
-    المستخدم يدخل القيمة بنفسه.
-
-    ثم:
+    = القيمة التي يدخلها المستخدم
 
     VIP 3 → VIP 4
+    = upgrade الخاص بـ VIP 4
+
     VIP 4 → VIP 5
-    VIP 5 → VIP 6
+    = upgrade الخاص بـ VIP 5
 
-    ... إلخ
-
-    يتم أخذها تلقائياً من جدول VIP.
+    وهكذا
     */
-
 
     for (
         let level = current + 1;
@@ -559,15 +509,12 @@ function calculateReach() {
         const nextLevel =
             level + 1;
 
-
         const data =
             getVip(nextLevel);
 
 
         if (data) {
-
-            total +=
-                number(data.upgrade);
+            total += number(data.upgrade);
         }
     }
 
@@ -577,7 +524,7 @@ function calculateReach() {
 
 
 /* =========================================================
-   التثبيت التلقائي
+   AUTOMATIC LOCK
 ========================================================= */
 
 function getAutomaticLockValue() {
@@ -612,7 +559,7 @@ function getAutomaticLockValue() {
 
 
 /* =========================================================
-   تحديث التثبيت
+   UPDATE LOCK
 ========================================================= */
 
 function updateAutoLock() {
@@ -623,15 +570,10 @@ function updateAutoLock() {
 
     if (mode === "currentLock") {
 
-        targetLockBox.classList.add(
-            "hidden"
-        );
+        targetLockBox.classList.add("hidden");
 
         if (targetLockInput) {
-
-            targetLockInput.classList.add(
-                "hidden"
-            );
+            targetLockInput.classList.add("hidden");
         }
 
         return;
@@ -647,17 +589,13 @@ function updateAutoLock() {
 
     if (target <= current) {
 
-        targetLockBox.classList.add(
-            "hidden"
-        );
+        targetLockBox.classList.add("hidden");
 
         return;
     }
 
 
-    targetLockBox.classList.remove(
-        "hidden"
-    );
+    targetLockBox.classList.remove("hidden");
 
 
     const value =
@@ -683,27 +621,20 @@ function updateAutoLock() {
 
 
 /* =========================================================
-   تثبيت المستوى الحالي
+   CURRENT LOCK
 ========================================================= */
 
 function renderCurrentLock() {
 
-    transitionArea.classList.remove(
-        "hidden"
-    );
+    transitionArea.classList.remove("hidden");
 
-    targetLockBox.classList.add(
-        "hidden"
-    );
-
+    targetLockBox.classList.add("hidden");
 
     const current =
         Number(currentVip.value);
 
-
     const data =
         getVip(current);
-
 
     const value =
         data
@@ -712,11 +643,14 @@ function renderCurrentLock() {
 
 
     transitionList.innerHTML = `
+
         <div class="transition current-lock-card">
 
             <div class="transition-head">
 
-                <span>تلقائي</span>
+                <span>
+                    تلقائي
+                </span>
 
                 <strong>
                     تثبيت VIP ${current}
@@ -750,7 +684,7 @@ function renderCurrentLock() {
 
 
 /* =========================================================
-   الحساب الرئيسي
+   MAIN CALCULATION
 ========================================================= */
 
 function calculate() {
@@ -762,7 +696,6 @@ function calculate() {
     const current =
         Number(currentVip.value);
 
-
     const target =
         Number(targetVip.value);
 
@@ -771,32 +704,21 @@ function calculate() {
         number(multiplier.value);
 
 
-    /*
-    السعر الثابت:
-
-    130,000 دعم = 11 دينار
-    130,000 دعم = 15 دولار
-    */
-
-    const supportUnit =
-        number(supportRate.value) || 130000;
+    const supportPerMillion =
+        number(supportRate.value);
 
 
-    const jodUnit =
-        number(jodRate.value) || 11;
+    const jodPerSupportUnit =
+        number(jodRate.value);
 
 
-    const usdUnit =
-        number(usdRate.value) || 15;
+    const usdPerSupportUnit =
+        number(usdRate.value);
 
 
     let reach = 0;
     let lock = 0;
 
-
-    /* =====================================================
-       تثبيت المستوى الحالي
-    ===================================================== */
 
     if (mode === "currentLock") {
 
@@ -807,25 +729,14 @@ function calculate() {
             data
                 ? number(data.maintain)
                 : 0;
-    }
 
-
-    /* =====================================================
-       الوصول إلى مستوى آخر
-    ===================================================== */
-
-    else {
+    } else {
 
         if (target > current) {
 
             reach =
                 calculateReach();
 
-
-            /*
-            التثبيت اختياري
-            لكن قيمته محسوبة تلقائياً.
-            */
 
             if (
                 enableTargetLock &&
@@ -839,18 +750,9 @@ function calculate() {
     }
 
 
-    /* =====================================================
-       الإجمالي
-    ===================================================== */
-
     const total =
         reach + lock;
 
-
-    /*
-    الشحن الفعلي =
-    إجمالي نقاط VIP ÷ معامل الحساب
-    */
 
     const charge =
         x > 0
@@ -859,53 +761,36 @@ function calculate() {
 
 
     /*
-    =====================================================
+    ========================================================
     الدعم
 
-    إذا كانت 1,000,000 شحن فعلي:
+    مثال:
+    130,000 دعم = 11 دينار
+    130,000 دعم = 15 دولار
 
-    1,000,000 ÷ 1,000,000 × 130,000
-    = 130,000 دعم
-
-    =====================================================
+    لذلك:
+    1 دعم = 11 / 130000 دينار
+    1 دعم = 15 / 130000 دولار
+    ========================================================
     */
+
 
     const support =
         (charge / 1000000) *
-        supportUnit;
+        supportPerMillion;
 
-
-    /*
-    =====================================================
-    الدينار
-
-    كل 130,000 دعم = 11 دينار
-    =====================================================
-    */
 
     const jod =
-        supportUnit > 0
-            ? (
-                support /
-                supportUnit
-            ) * jodUnit
+        supportPerMillion > 0
+            ? (support / supportPerMillion) *
+              jodPerSupportUnit
             : 0;
 
 
-    /*
-    =====================================================
-    الدولار
-
-    كل 130,000 دعم = 15 دولار
-    =====================================================
-    */
-
     const usd =
-        supportUnit > 0
-            ? (
-                support /
-                supportUnit
-            ) * usdUnit
+        supportPerMillion > 0
+            ? (support / supportPerMillion) *
+              usdPerSupportUnit
             : 0;
 
 
@@ -916,19 +801,16 @@ function calculate() {
         lock,
         total,
         x,
-        charge,
         support,
         jod,
         usd,
-        supportUnit,
-        jodUnit,
-        usdUnit
+        supportPerMillion
     );
 }
 
 
 /* =========================================================
-   عرض النتيجة
+   SHOW CALCULATION
 ========================================================= */
 
 function showCalculation(
@@ -938,13 +820,10 @@ function showCalculation(
     lock,
     total,
     x,
-    charge,
     support,
     jod,
     usd,
-    supportUnit,
-    jodUnit,
-    usdUnit
+    supportPerMillion
 ) {
 
     if (current === target) {
@@ -963,71 +842,37 @@ function showCalculation(
         `×${x}`;
 
 
-    /*
-    نقاط الوصول
-    */
+    actualCharge.textContent =
+        format(
+            x > 0
+                ? total / x
+                : 0
+        );
+
 
     reachPoints.textContent =
         format(reach);
 
 
-    /*
-    نقاط التثبيت
-    */
-
     lockPoints.textContent =
         format(lock);
 
-
-    /*
-    إجمالي الوصول مع التثبيت
-    */
 
     totalVipPoints.textContent =
         format(total);
 
 
-    /*
-    إجمالي شحن الوكيل
-    */
-
-    actualCharge.textContent =
-        format(charge);
-
-
-    /*
-    إجمالي الدعم
-    */
-
     supportNeeded.textContent =
         format(support);
 
 
-    /*
-    سعر الدعم بالدينار
-    */
-
     jodTotal.textContent =
-        formatMoney(
-            jod,
-            "د.أ"
-        );
+        formatMoney(jod, "د.أ");
 
-
-    /*
-    سعر الدعم بالدولار
-    */
 
     usdTotal.textContent =
-        formatMoney(
-            usd,
-            "$"
-        );
+        formatMoney(usd, "$");
 
-
-    /*
-    المعادلات
-    */
 
     formulaReach.textContent =
         format(reach);
@@ -1046,12 +891,24 @@ function showCalculation(
 
 
     formulaSupport.textContent =
-        `${format(charge)} ÷ 1,000,000 × ${format(supportUnit)} = ${format(support)}`;
+        `${format(actualChargeValue(total, x))} ÷ 1,000,000 × ${format(supportPerMillion)} = ${format(support)}`;
 }
 
 
 /* =========================================================
-   تحديث واجهة الوضع
+   ACTUAL CHARGE VALUE
+========================================================= */
+
+function actualChargeValue(total, x) {
+
+    return x > 0
+        ? total / x
+        : 0;
+}
+
+
+/* =========================================================
+   MODE UI
 ========================================================= */
 
 function updateModeUI() {
@@ -1097,7 +954,7 @@ function updateModeUI() {
 
 
 /* =========================================================
-   السجلات
+   RECORDS
 ========================================================= */
 
 function getRecords() {
@@ -1140,10 +997,13 @@ function saveRecords(records) {
 
 
 /* =========================================================
-   إنشاء سجل
+   CREATE RECORD
 ========================================================= */
 
 function createRecord() {
+
+    calculate();
+
 
     const mode =
         getMode();
@@ -1187,39 +1047,37 @@ function createRecord() {
             : 0;
 
 
-    const supportUnit =
-        number(supportRate.value) || 130000;
-
-
-    const jodUnit =
-        number(jodRate.value) || 11;
-
-
-    const usdUnit =
-        number(usdRate.value) || 15;
+    const supportRateValue =
+        number(supportRate.value);
 
 
     const support =
         (charge / 1000000) *
-        supportUnit;
+        supportRateValue;
 
 
     const jod =
-        supportUnit > 0
-            ? (
-                support /
-                supportUnit
-            ) * jodUnit
+        supportRateValue > 0
+            ? (support / supportRateValue) *
+              number(jodRate.value)
             : 0;
 
 
     const usd =
-        supportUnit > 0
-            ? (
-                support /
-                supportUnit
-            ) * usdUnit
+        supportRateValue > 0
+            ? (support / supportRateValue) *
+              number(usdRate.value)
             : 0;
+
+
+    const input =
+        getFirstTransitionInput();
+
+
+    if (input) {
+        firstTransitionMemory =
+            input.value;
+    }
 
 
     return {
@@ -1228,73 +1086,64 @@ function createRecord() {
             Date.now() +
             Math.random(),
 
-
         created:
             new Date().toISOString(),
-
 
         clientName:
             clientName.value.trim(),
 
-
         clientId:
             clientId.value.trim(),
 
-
         mode,
-
 
         currentVip:
             current,
 
-
         targetVip:
             target,
-
 
         multiplier:
             x,
 
-
         firstTransition:
-            getFirstTransitionInput()
-                ? number(
-                    getFirstTransitionInput().value
-                )
-                : 0,
-
+            input
+                ? number(input.value)
+                : number(firstTransitionMemory),
 
         targetLockEnabled:
             mode === "reach"
                 ? enableTargetLock.checked
                 : true,
 
-
         reach,
+
         lock,
+
         total,
+
         charge,
+
         support,
+
         jod,
+
         usd,
 
-
         supportRate:
-            supportUnit,
-
+            supportRateValue,
 
         jodRate:
-            jodUnit,
-
+            number(jodRate.value),
 
         usdRate:
-            usdUnit
+            number(usdRate.value)
     };
 }
 
 
 /* =========================================================
-   حفظ العملية
+   SAVE
 ========================================================= */
 
 $("saveBtn").addEventListener(
@@ -1339,6 +1188,7 @@ $("saveBtn").addEventListener(
 
 
         renderHistory();
+
         updateStats();
 
 
@@ -1350,7 +1200,7 @@ $("saveBtn").addEventListener(
 
 
 /* =========================================================
-   عرض السجل
+   HISTORY
 ========================================================= */
 
 function renderHistory() {
@@ -1372,19 +1222,16 @@ function renderHistory() {
 
                 !query ||
 
-                String(
-                    record.clientId
-                )
+                String(record.clientId)
                     .toLowerCase()
                     .includes(query)
 
                 ||
 
-                String(
-                    record.clientName
-                )
+                String(record.clientName)
                     .toLowerCase()
                     .includes(query)
+
             );
         });
 
@@ -1415,9 +1262,8 @@ function renderHistory() {
 
 
         const date =
-            new Date(
-                record.created
-            ).toLocaleString("ar");
+            new Date(record.created)
+                .toLocaleString("ar");
 
 
         const operation =
@@ -1438,8 +1284,7 @@ function renderHistory() {
                 </strong>
 
                 <span>
-                    ID:
-                    ${safe(record.clientId)}
+                    ID: ${safe(record.clientId)}
                 </span>
 
                 <span>
@@ -1468,14 +1313,13 @@ function renderHistory() {
             <div class="history-buttons">
 
                 <button
-                    type="button"
                     data-open="${record.id}"
                 >
                     فتح
                 </button>
 
+
                 <button
-                    type="button"
                     class="delete"
                     data-delete="${record.id}"
                 >
@@ -1492,23 +1336,19 @@ function renderHistory() {
 
 
 /* =========================================================
-   فتح / حذف السجل
+   HISTORY CLICK
 ========================================================= */
 
 history.addEventListener(
     "click",
     event => {
 
-        const target =
-            event.target;
-
-
         const openId =
-            target.dataset.open;
+            event.target.dataset.open;
 
 
         const deleteId =
-            target.dataset.delete;
+            event.target.dataset.delete;
 
 
         if (openId) {
@@ -1516,8 +1356,6 @@ history.addEventListener(
             loadRecord(
                 Number(openId)
             );
-
-            return;
         }
 
 
@@ -1532,7 +1370,7 @@ history.addEventListener(
 
 
 /* =========================================================
-   تحميل سجل
+   LOAD RECORD
 ========================================================= */
 
 function loadRecord(id) {
@@ -1565,9 +1403,7 @@ function loadRecord(id) {
 
 
     multiplier.value =
-        String(
-            record.multiplier || 0
-        );
+        String(record.multiplier);
 
 
     supportRate.value =
@@ -1583,6 +1419,12 @@ function loadRecord(id) {
     usdRate.value =
         record.usdRate ||
         15;
+
+
+    firstTransitionMemory =
+        record.firstTransition !== undefined
+            ? String(record.firstTransition)
+            : "";
 
 
     const radio =
@@ -1602,19 +1444,8 @@ function loadRecord(id) {
         );
 
 
-    if (record.mode === "reach") {
+    updateModeUI();
 
-        renderTransitions(
-            record.firstTransition || ""
-        );
-
-    } else {
-
-        renderCurrentLock();
-    }
-
-
-    updateAutoLock();
     calculate();
 
 
@@ -1635,7 +1466,7 @@ function loadRecord(id) {
 
 
 /* =========================================================
-   حذف سجل
+   DELETE RECORD
 ========================================================= */
 
 function deleteRecord(id) {
@@ -1657,14 +1488,14 @@ function deleteRecord(id) {
 
     saveRecords(records);
 
-
     renderHistory();
+
     updateStats();
 }
 
 
 /* =========================================================
-   حذف جميع السجلات
+   CLEAR HISTORY
 ========================================================= */
 
 $("clearHistory").addEventListener(
@@ -1700,13 +1531,14 @@ $("clearHistory").addEventListener(
 
 
         renderHistory();
+
         updateStats();
     }
 );
 
 
 /* =========================================================
-   البحث
+   SEARCH
 ========================================================= */
 
 historySearch.addEventListener(
@@ -1716,33 +1548,37 @@ historySearch.addEventListener(
 
 
 /* =========================================================
-   تغيير المستوى الحالي
+   VIP CHANGE
 ========================================================= */
 
 currentVip.addEventListener(
     "change",
     () => {
 
+        /*
+        عند تغيير المستوى نبدأ خانة جديدة.
+        */
+
+        firstTransitionMemory = "";
+
         updateModeUI();
     }
 );
 
-
-/* =========================================================
-   تغيير المستوى الهدف
-========================================================= */
 
 targetVip.addEventListener(
     "change",
     () => {
 
-        updateModeUI();
+        updateAutoLock();
+
+        calculate();
     }
 );
 
 
 /* =========================================================
-   معامل الحساب
+   MULTIPLIER
 ========================================================= */
 
 multiplier.addEventListener(
@@ -1750,14 +1586,9 @@ multiplier.addEventListener(
     calculate
 );
 
-multiplier.addEventListener(
-    "change",
-    calculate
-);
-
 
 /* =========================================================
-   التثبيت
+   TARGET LOCK
 ========================================================= */
 
 enableTargetLock.addEventListener(
@@ -1765,13 +1596,14 @@ enableTargetLock.addEventListener(
     () => {
 
         updateAutoLock();
+
         calculate();
     }
 );
 
 
 /* =========================================================
-   أسعار الدعم
+   RATES
 ========================================================= */
 
 [
@@ -1784,21 +1616,14 @@ enableTargetLock.addEventListener(
         "input",
         calculate
     );
-
-
-    input.addEventListener(
-        "change",
-        calculate
-    );
 });
 
 
 /* =========================================================
-   خانة القيمة الفعلية
-
-   مهم:
-   لا نعيد بناء الخانة أثناء الكتابة.
-   لذلك Backspace والحذف يعملان طبيعي.
+   FIRST TRANSITION INPUT
+   مهم جداً:
+   لا renderTransitions هنا
+   ولا تغيير value
 ========================================================= */
 
 transitionList.addEventListener(
@@ -1811,6 +1636,9 @@ transitionList.addEventListener(
             )
         ) {
 
+            firstTransitionMemory =
+                event.target.value;
+
             calculate();
         }
     }
@@ -1818,7 +1646,7 @@ transitionList.addEventListener(
 
 
 /* =========================================================
-   نوع العملية
+   MODE
 ========================================================= */
 
 document
@@ -1831,14 +1659,17 @@ document
             "change",
             () => {
 
+                firstTransitionMemory = "";
+
                 updateModeUI();
             }
         );
+
     });
 
 
 /* =========================================================
-   زر الحساب
+   CALCULATE BUTTON
 ========================================================= */
 
 $("calculateBtn").addEventListener(
@@ -1848,7 +1679,7 @@ $("calculateBtn").addEventListener(
 
 
 /* =========================================================
-   عملية جديدة
+   NEW
 ========================================================= */
 
 $("newBtn").addEventListener(
@@ -1865,34 +1696,24 @@ $("newBtn").addEventListener(
 
 
         clientName.value = "";
+
         clientId.value = "";
 
-
         currentVip.value = "10";
-        targetVip.value = "11";
 
+        targetVip.value = "11";
 
         multiplier.value = "5";
 
+        supportRate.value = "130000";
 
-        /*
-        الأسعار الصحيحة
-        */
+        jodRate.value = "11";
 
-        supportRate.value =
-            "130000";
+        usdRate.value = "15";
 
+        enableTargetLock.checked = false;
 
-        jodRate.value =
-            "11";
-
-
-        usdRate.value =
-            "15";
-
-
-        enableTargetLock.checked =
-            false;
+        firstTransitionMemory = "";
 
 
         const reachRadio =
@@ -1912,6 +1733,7 @@ $("newBtn").addEventListener(
 
 
         updateModeUI();
+
         calculate();
 
 
@@ -1924,7 +1746,7 @@ $("newBtn").addEventListener(
 
 
 /* =========================================================
-   الإحصائيات
+   STATISTICS
 ========================================================= */
 
 function updateStats() {
@@ -1933,17 +1755,9 @@ function updateStats() {
         getRecords();
 
 
-    /*
-    إجمالي العمليات
-    */
-
     const operations =
         records.length;
 
-
-    /*
-    إجمالي العملاء الفريدين
-    */
 
     const customers =
         new Set(
@@ -1958,74 +1772,45 @@ function updateStats() {
         ).size;
 
 
-    /*
-    إجمالي شحن الوكيل
-    */
-
     const totalCharge =
         records.reduce(
             (sum, record) =>
-                sum +
-                number(record.charge),
+                sum + number(record.charge),
             0
         );
 
-
-    /*
-    إجمالي الدعم
-    */
 
     const totalSupport =
         records.reduce(
             (sum, record) =>
-                sum +
-                number(record.support),
+                sum + number(record.support),
             0
         );
 
-
-    /*
-    إجمالي نقاط VIP
-    */
 
     const totalVip =
         records.reduce(
             (sum, record) =>
-                sum +
-                number(record.total),
+                sum + number(record.total),
             0
         );
 
-
-    /*
-    إجمالي الدينار
-    */
 
     const totalJod =
         records.reduce(
             (sum, record) =>
-                sum +
-                number(record.jod),
+                sum + number(record.jod),
             0
         );
 
-
-    /*
-    إجمالي الدولار
-    */
 
     const totalUsd =
         records.reduce(
             (sum, record) =>
-                sum +
-                number(record.usd),
+                sum + number(record.usd),
             0
         );
 
-
-    /*
-    أعلى VIP وصل إليه العملاء
-    */
 
     const highestVip =
         records.length
@@ -2040,43 +1825,76 @@ function updateStats() {
             : 0;
 
 
-    $("statOperations").textContent =
-        format(operations);
+    const statOperations =
+        $("statOperations");
+
+    const statCustomers =
+        $("statCustomers");
+
+    const statCharge =
+        $("statCharge");
+
+    const statSupport =
+        $("statSupport");
+
+    const statVipPoints =
+        $("statVipPoints");
+
+    const statJod =
+        $("statJod");
+
+    const statUsd =
+        $("statUsd");
+
+    const statHighestVip =
+        $("statHighestVip");
 
 
-    $("statCustomers").textContent =
-        format(customers);
+    if (statOperations)
+        statOperations.textContent =
+            format(operations);
 
 
-    $("statCharge").textContent =
-        format(totalCharge);
+    if (statCustomers)
+        statCustomers.textContent =
+            format(customers);
 
 
-    $("statSupport").textContent =
-        format(totalSupport);
+    if (statCharge)
+        statCharge.textContent =
+            format(totalCharge);
 
 
-    $("statVipPoints").textContent =
-        format(totalVip);
+    if (statSupport)
+        statSupport.textContent =
+            format(totalSupport);
 
 
-    $("statJod").textContent =
-        format(totalJod);
+    if (statVipPoints)
+        statVipPoints.textContent =
+            format(totalVip);
 
 
-    $("statUsd").textContent =
-        format(totalUsd);
+    if (statJod)
+        statJod.textContent =
+            format(totalJod);
 
 
-    $("statHighestVip").textContent =
-        highestVip
-            ? `VIP ${highestVip}`
-            : "—";
+    if (statUsd)
+        statUsd.textContent =
+            format(totalUsd);
+
+
+    if (statHighestVip)
+        statHighestVip.textContent =
+            highestVip
+                ? `VIP ${highestVip}`
+                : "—";
 }
 
 
 /* =========================================================
-   فتح / إخفاء الإحصائيات
+   STATISTICS TOGGLE
 ========================================================= */
 
 $("statsToggle").addEventListener(
@@ -2085,7 +1903,6 @@ $("statsToggle").addEventListener(
 
         const panel =
             $("statsPanel");
-
 
         const arrow =
             $("statsArrow");
@@ -2096,7 +1913,7 @@ $("statsToggle").addEventListener(
         }
 
 
-        const hidden =
+        const isHidden =
             panel.classList.contains(
                 "hidden"
             );
@@ -2104,14 +1921,14 @@ $("statsToggle").addEventListener(
 
         panel.classList.toggle(
             "hidden",
-            !hidden
+            !isHidden
         );
 
 
         if (arrow) {
 
             arrow.textContent =
-                hidden
+                isHidden
                     ? "⌃"
                     : "⌄";
         }
@@ -2120,7 +1937,7 @@ $("statsToggle").addEventListener(
 
 
 /* =========================================================
-   الوضع الليلي والنهاري
+   THEME
 ========================================================= */
 
 function loadTheme() {
@@ -2186,7 +2003,7 @@ $("themeToggle").addEventListener(
 
 
 /* =========================================================
-   الحاسبة العادية
+   NORMAL CALCULATOR
 ========================================================= */
 
 (function () {
@@ -2194,10 +2011,8 @@ $("themeToggle").addEventListener(
     const result =
         $("calculatorResult");
 
-
     const calcHistory =
         $("calculatorHistory");
-
 
     const buttons =
         document.querySelectorAll(
@@ -2216,8 +2031,7 @@ $("themeToggle").addEventListener(
 
     let expression = "";
 
-    let justCalculated =
-        false;
+    let justCalculated = false;
 
 
     function updateDisplay() {
@@ -2248,10 +2062,6 @@ $("themeToggle").addEventListener(
                     );
 
 
-            /*
-            النسبة
-            */
-
             exp =
                 exp.replace(
                     /(\d+(?:\.\d+)?)%/g,
@@ -2260,11 +2070,8 @@ $("themeToggle").addEventListener(
 
 
             if (
-                !/^[0-9+\-*/().\s]+$/.test(
-                    exp
-                )
+                !/^[0-9+\-*/().\s]+$/.test(exp)
             ) {
-
                 throw new Error(
                     "Invalid"
                 );
@@ -2278,11 +2085,8 @@ $("themeToggle").addEventListener(
 
 
             if (
-                !Number.isFinite(
-                    answer
-                )
+                !Number.isFinite(answer)
             ) {
-
                 throw new Error(
                     "Invalid"
                 );
@@ -2303,9 +2107,7 @@ $("themeToggle").addEventListener(
                 );
 
 
-            justCalculated =
-                true;
-
+            justCalculated = true;
 
             updateDisplay();
 
@@ -2314,166 +2116,129 @@ $("themeToggle").addEventListener(
             calcHistory.textContent =
                 expression;
 
-
             result.textContent =
                 "خطأ";
 
-
             expression = "";
 
-
-            justCalculated =
-                false;
+            justCalculated = false;
         }
     }
 
 
-    buttons.forEach(
-        button => {
+    buttons.forEach(button => {
 
-            button.addEventListener(
-                "click",
-                function () {
+        button.addEventListener(
+            "click",
+            function () {
 
-                    const value =
-                        this.dataset.value;
+                const value =
+                    this.dataset.value;
 
-
-                    const action =
-                        this.dataset.action;
+                const action =
+                    this.dataset.action;
 
 
-                    /*
-                    مسح الكل
-                    */
+                if (
+                    action === "clear"
+                ) {
+
+                    expression = "";
+
+                    calcHistory.textContent = "";
+
+                    justCalculated = false;
+
+                    updateDisplay();
+
+                    return;
+                }
+
+
+                if (
+                    action === "delete"
+                ) {
+
+                    expression =
+                        expression.slice(
+                            0,
+                            -1
+                        );
+
+                    justCalculated = false;
+
+                    updateDisplay();
+
+                    return;
+                }
+
+
+                if (
+                    action === "equals"
+                ) {
+
+                    calculateExpression();
+
+                    return;
+                }
+
+
+                if (value) {
+
+                    const isOperator =
+                        [
+                            "+",
+                            "-",
+                            "*",
+                            "/",
+                            "%"
+                        ].includes(value);
+
 
                     if (
-                        action === "clear"
+                        justCalculated &&
+                        !isOperator &&
+                        value !== "."
                     ) {
 
                         expression = "";
 
-                        calcHistory.textContent =
-                            "";
-
-                        justCalculated =
-                            false;
-
-                        updateDisplay();
-
-                        return;
+                        calcHistory.textContent = "";
                     }
 
-
-                    /*
-                    حذف رقم واحد
-                    */
 
                     if (
-                        action === "delete"
-                    ) {
-
-                        expression =
-                            expression.slice(
-                                0,
-                                -1
-                            );
-
-
-                        justCalculated =
-                            false;
-
-
-                        updateDisplay();
-
-                        return;
-                    }
-
-
-                    /*
-                    يساوي
-                    */
-
-                    if (
-                        action === "equals"
-                    ) {
-
-                        calculateExpression();
-
-                        return;
-                    }
-
-
-                    /*
-                    إدخال رقم / عملية
-                    */
-
-                    if (value) {
-
-                        const isOperator =
-                            [
-                                "+",
-                                "-",
-                                "*",
-                                "/",
-                                "%"
-                            ].includes(
-                                value
-                            );
-
-
-                        if (
-                            justCalculated &&
-                            !isOperator &&
-                            value !== "."
-                        ) {
-
-                            expression =
-                                "";
-
-                            calcHistory.textContent =
-                                "";
-                        }
-
-
-                        /*
-                        النقطة العشرية
-                        */
-
-                        if (
-                            value === "." &&
-                            (
-                                expression === "" ||
-                                /[+\-*/]$/.test(
-                                    expression
-                                )
+                        value === "." &&
+                        (
+                            expression === "" ||
+                            /[+\-*/]$/.test(
+                                expression
                             )
-                        ) {
+                        )
+                    ) {
 
-                            expression +=
-                                "0.";
+                        expression +=
+                            "0.";
 
-                        } else {
+                    } else {
 
-                            expression +=
-                                value;
-                        }
-
-
-                        justCalculated =
-                            false;
-
-
-                        updateDisplay();
+                        expression += value;
                     }
+
+
+                    justCalculated = false;
+
+                    updateDisplay();
                 }
-            );
-        }
-    );
+
+            }
+        );
+
+    });
 
 
     /* =====================================================
-       لوحة المفاتيح
+       KEYBOARD
     ===================================================== */
 
     document.addEventListener(
@@ -2484,36 +2249,21 @@ $("themeToggle").addEventListener(
                 event.key;
 
 
-            /*
-            الأرقام والعمليات
-            */
-
             if (
-                /[0-9.+\-*/%]/.test(
-                    key
-                )
+                /[0-9.+\-*/%]/.test(key)
             ) {
 
                 event.preventDefault();
 
+                expression += key;
 
-                expression +=
-                    key;
-
-
-                justCalculated =
-                    false;
-
+                justCalculated = false;
 
                 updateDisplay();
 
                 return;
             }
 
-
-            /*
-            Enter
-            */
 
             if (
                 key === "Enter" ||
@@ -2528,16 +2278,12 @@ $("themeToggle").addEventListener(
             }
 
 
-            /*
-            Backspace
-            */
-
             if (
-                key === "Backspace"
+                key === "Backspace" ||
+                key === "Delete"
             ) {
 
                 event.preventDefault();
-
 
                 expression =
                     expression.slice(
@@ -2545,10 +2291,7 @@ $("themeToggle").addEventListener(
                         -1
                     );
 
-
-                justCalculated =
-                    false;
-
+                justCalculated = false;
 
                 updateDisplay();
 
@@ -2556,30 +2299,21 @@ $("themeToggle").addEventListener(
             }
 
 
-            /*
-            Escape
-            */
-
             if (
                 key === "Escape"
             ) {
 
                 event.preventDefault();
 
-
                 expression = "";
 
+                calcHistory.textContent = "";
 
-                calcHistory.textContent =
-                    "";
-
-
-                justCalculated =
-                    false;
-
+                justCalculated = false;
 
                 updateDisplay();
             }
+
         }
     );
 
@@ -2587,7 +2321,7 @@ $("themeToggle").addEventListener(
 
 
 /* =========================================================
-   التشغيل
+   START
 ========================================================= */
 
 buildVipOptions();
