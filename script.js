@@ -1330,69 +1330,21 @@ enableTargetLock.addEventListener(
     );
 });
 
-
 /* =========================================================
    تغييرات خانات الانتقال
 ========================================================= */
 
 transitionList.addEventListener("input", function (event) {
 
-    const input = event.target;
-
     if (
-        input.classList.contains("transition-value") ||
-        input.classList.contains("current-lock-value")
+        event.target.classList.contains("transition-value") ||
+        event.target.classList.contains("current-lock-value")
     ) {
         calculate();
     }
 
 });
 
-
-transitionList.addEventListener("change", function (event) {
-
-    const input = event.target;
-
-    if (
-        input.classList.contains("transition-value") ||
-        input.classList.contains("current-lock-value")
-    ) {
-        calculate();
-    }
-
-});
-
-
-transitionList.addEventListener("keydown", function (event) {
-
-    const input = event.target;
-
-    if (
-        input.classList.contains("transition-value") ||
-        input.classList.contains("current-lock-value")
-    ) {
-
-        /*
-        السماح بالحذف والتنقل داخل خانة الرقم
-        */
-
-        if (
-            event.key === "Backspace" ||
-            event.key === "Delete" ||
-            event.key === "ArrowLeft" ||
-            event.key === "ArrowRight" ||
-            event.key === "ArrowUp" ||
-            event.key === "ArrowDown" ||
-            event.key === "Home" ||
-            event.key === "End" ||
-            event.key === "Tab"
-        ) {
-            return;
-        }
-
-    }
-
-});
 
 
 /* =========================================================
