@@ -3,147 +3,182 @@
 /*
 ============================================================
 مجلس القمة للشحن
-حاسبة VIP
+حاسبة VIP - الإصدار المطور
 
-المعادلة الأساسية:
+النظام الجديد:
 
-1) نقاط الوصول = القيم التي يدخلها المستخدم
-2) نقاط التثبيت = قيمة التثبيت إذا تم تفعيل التثبيت
-3) إجمالي نقاط VIP = الوصول + التثبيت
-4) الشحن الفعلي = إجمالي نقاط VIP ÷ العرض
-5) الدعم = الشحن الفعلي ÷ 1,000,000 × دعم المليون
+مثال:
+VIP 1 → VIP 7
 
-مهم جداً:
-جدول VIP لا يتم جمعه تلقائياً في حسبة العميل.
+المستخدم يدخل قيمة واحدة فقط:
+"المتبقي الحقيقي للوصول إلى VIP 7"
+
+لا يتم إنشاء:
+VIP 1 → 2
+VIP 2 → 3
+VIP 3 → 4
+... إلخ
+
+القيمة التي يدخلها المستخدم هي أساس الحسبة.
+
+إذا فعل التثبيت:
+الإجمالي = قيمة الوصول + قيمة التثبيت التي يدخلها المستخدم
+
+إذا لم يفعل التثبيت:
+الإجمالي = قيمة الوصول فقط
+
+مهم:
+قيمة التثبيت لا يتم وضعها تلقائياً من جدول VIP.
 ============================================================
 */
 
 
 /* =========================================================
-   جدول VIP 1 - 20
+   جدول VIP
 ========================================================= */
 
 const VIP_TABLE = [
+
     {
         level: 1,
         total: 50000,
         upgrade: 50000,
         maintain: 30000
     },
+
     {
         level: 2,
         total: 100000,
         upgrade: 50000,
         maintain: 30000
     },
+
     {
         level: 3,
         total: 300000,
         upgrade: 100000,
         maintain: 90000
     },
+
     {
         level: 4,
         total: 1000000,
         upgrade: 800000,
         maintain: 500000
     },
+
     {
         level: 5,
         total: 3000000,
         upgrade: 2000000,
         maintain: 1300000
     },
+
     {
         level: 6,
         total: 7000000,
         upgrade: 4000000,
         maintain: 2600000
     },
+
     {
         level: 7,
         total: 14000000,
         upgrade: 7000000,
         maintain: 4500000
     },
+
     {
         level: 8,
         total: 26000000,
         upgrade: 12000000,
         maintain: 7800000
     },
+
     {
         level: 9,
         total: 42000000,
         upgrade: 16000000,
         maintain: 11000000
     },
+
     {
         level: 10,
         total: 62000000,
         upgrade: 20000000,
         maintain: 14000000
     },
+
     {
         level: 11,
         total: 102000000,
         upgrade: 40000000,
         maintain: 28000000
     },
+
     {
         level: 12,
         total: 220000000,
         upgrade: 118000000,
         maintain: 83000000
     },
+
     {
         level: 13,
         total: 430000000,
         upgrade: 210000000,
         maintain: 150000000
     },
+
     {
         level: 14,
         total: 820000000,
         upgrade: 390000000,
         maintain: 310000000
     },
+
     {
         level: 15,
         total: 1820000000,
         upgrade: 1000000000,
         maintain: 700000000
     },
+
     {
         level: 16,
         total: 3820000000,
         upgrade: 2000000000,
         maintain: 1400000000
     },
+
     {
         level: 17,
         total: 7382000000,
         upgrade: 3500000000,
         maintain: 3000000000
     },
+
     {
         level: 18,
         total: 11882000000,
         upgrade: 4500000000,
         maintain: 4000000000
     },
+
     {
         level: 19,
         total: 17382000000,
         upgrade: 5500000000,
         maintain: 5000000000
     },
+
     {
         level: 20,
         total: 27382000000,
         upgrade: 10000000000,
         maintain: 9000000000
     }
+
 ];
 
 
@@ -152,7 +187,13 @@ const VIP_TABLE = [
 ========================================================= */
 
 const STORAGE_KEY =
-    "majlis_alqimma_vip_records_v5";
+    "majlis_alqimma_vip_records_v6";
+
+const THEME_KEY =
+    "majlis_alqimma_theme_v2";
+
+const CALC_HISTORY_KEY =
+    "majlis_alqimma_calculator_history_v2";
 
 
 /* =========================================================
@@ -164,7 +205,7 @@ const $ = id =>
 
 
 /* =========================================================
-   عناصر الصفحة
+   عناصر VIP
 ========================================================= */
 
 const clientName =
@@ -185,8 +226,23 @@ const multiplier =
 const transitionArea =
     $("transitionArea");
 
-const transitionList =
-    $("transitionList");
+const singleReachBox =
+    $("singleReachBox");
+
+const reachValue =
+    $("reachValue");
+
+const reachRoute =
+    $("reachRoute");
+
+const currentLockArea =
+    $("currentLockArea");
+
+const currentLockValue =
+    $("currentLockValue");
+
+const currentLockTitle =
+    $("currentLockTitle");
 
 const enableTargetLock =
     $("enableTargetLock");
@@ -260,6 +316,9 @@ const historySearch =
 const clientStatus =
     $("clientStatus");
 
+const calculationStatus =
+    $("calculationStatus");
+
 
 /* =========================================================
    أدوات الأرقام
@@ -306,7 +365,7 @@ function formatMoney(value, suffix) {
 
 
 /* =========================================================
-   اختيارات VIP
+   جدول VIP
 ========================================================= */
 
 function buildVipOptions() {
@@ -314,39 +373,37 @@ function buildVipOptions() {
     currentVip.innerHTML = "";
     targetVip.innerHTML = "";
 
-    for (
-        let level = 1;
-        level <= 20;
-        level++
-    ) {
+    VIP_TABLE.forEach(row => {
 
-        const optionCurrent =
+        const currentOption =
             document.createElement("option");
 
-        optionCurrent.value =
-            level;
+        currentOption.value =
+            row.level;
 
-        optionCurrent.textContent =
-            `VIP ${level}`;
+        currentOption.textContent =
+            `VIP ${row.level}`;
 
         currentVip.appendChild(
-            optionCurrent
+            currentOption
         );
 
 
-        const optionTarget =
+        const targetOption =
             document.createElement("option");
 
-        optionTarget.value =
-            level;
+        targetOption.value =
+            row.level;
 
-        optionTarget.textContent =
-            `VIP ${level}`;
+        targetOption.textContent =
+            `VIP ${row.level}`;
 
         targetVip.appendChild(
-            optionTarget
+            targetOption
         );
-    }
+
+    });
+
 
     currentVip.value = "10";
     targetVip.value = "11";
@@ -354,7 +411,7 @@ function buildVipOptions() {
 
 
 /* =========================================================
-   جدول VIP
+   جدول VIP المرئي
 ========================================================= */
 
 function renderVipTable() {
@@ -370,19 +427,25 @@ function renderVipTable() {
             document.createElement("tr");
 
         tr.innerHTML = `
+
             <td>VIP ${row.level}</td>
+
             <td>${format(row.total)}</td>
+
             <td>${format(row.upgrade)}</td>
+
             <td>${format(row.maintain)}</td>
+
         `;
 
         tbody.appendChild(tr);
+
     });
 }
 
 
 /* =========================================================
-   جلب بيانات مستوى
+   جلب مستوى
 ========================================================= */
 
 function getVip(level) {
@@ -412,27 +475,10 @@ function getMode() {
 
 
 /* =========================================================
-   إنشاء خانات الانتقال
-=========================================================
-
-مثال:
-
-VIP 10 → VIP 11
-
-تظهر خانة واحدة:
-
-المتبقي الفعلي = 80M
-
-الموقع لا يقول:
-VIP 10 إجماليه 62M
-VIP 11 إجماليه 102M
-
-ولا يجمعهم.
-
-أنت تدخل الرقم الحقيقي الذي أرسله العميل.
+   تحديث مسار VIP
 ========================================================= */
 
-function renderTransitions(saved = []) {
+function updateVipRoute() {
 
     const current =
         Number(currentVip.value);
@@ -440,223 +486,21 @@ function renderTransitions(saved = []) {
     const target =
         Number(targetVip.value);
 
-    transitionList.innerHTML = "";
+    reachRoute.textContent =
+        `VIP ${current} → VIP ${target}`;
 
-
-    /*
-    إذا كانت العملية تثبيت المستوى الحالي فقط
-    لا نحتاج انتقالات.
-    */
-
-    if (
-        getMode() === "currentLock"
-    ) {
-
-        transitionArea
-            .classList.add("hidden");
-
-        targetLockBox
-            .classList.add("hidden");
-
-        calculate();
-
-        return;
-    }
-
-
-    transitionArea
-        .classList.remove("hidden");
-
-
-    /*
-    لا يوجد انتقال إذا الهدف ليس أعلى.
-    */
-
-    if (target <= current) {
-
-        transitionList.innerHTML = `
-            <div class="empty">
-                اختر مستوى مطلوب أعلى من المستوى الحالي.
-            </div>
-        `;
-
-        targetLockBox
-            .classList.remove("hidden");
-
-        calculate();
-
-        return;
-    }
-
-
-    /*
-    إنشاء انتقال لكل مستوى.
-    */
-
-    for (
-        let from = current;
-        from < target;
-        from++
-    ) {
-
-        const to =
-            from + 1;
-
-
-        let value = "";
-
-
-        const savedItem =
-            saved.find(
-                item =>
-                    Number(item.from) === from &&
-                    Number(item.to) === to
-            );
-
-
-        if (savedItem) {
-            value =
-                savedItem.value;
-        }
-
-
-        const div =
-            document.createElement("div");
-
-        div.className =
-            "transition";
-
-
-        div.innerHTML = `
-
-            <div class="transition-head">
-                <span>الانتقال</span>
-                <strong>
-                    VIP ${from} → VIP ${to}
-                </strong>
-            </div>
-
-            <div class="field">
-
-                <label>
-                    المتبقي الفعلي لهذا الانتقال
-                </label>
-
-                <input
-                    class="transition-value"
-                    type="number"
-                    min="0"
-                    step="1"
-                    data-from="${from}"
-                    data-to="${to}"
-                    value="${value}"
-                    placeholder="مثال: 80000000"
-                >
-
-            </div>
-        `;
-
-
-        transitionList.appendChild(
-            div
-        );
-    }
-
-
-    /*
-    إظهار صندوق التثبيت.
-    */
-
-    targetLockBox
-        .classList.remove("hidden");
-
-
-    /*
-    عند تفعيل التثبيت لأول مرة
-    نضع قيمة جدول المستوى المستهدف.
-    */
-
-    if (
-        enableTargetLock.checked &&
-        !lockValue.value
-    ) {
-
-        const targetData =
-            getVip(target);
-
-        if (targetData) {
-
-            lockValue.value =
-                targetData.maintain;
-        }
-    }
-
+    currentLockTitle.textContent =
+        `VIP ${current}`;
 
     updateLockReference();
-
-    calculate();
-}
-
-
-/* =========================================================
-   قراءة الانتقالات
-========================================================= */
-
-function getTransitionValues() {
-
-    return Array.from(
-        document.querySelectorAll(
-            ".transition-value"
-        )
-    ).map(input => {
-
-        return {
-
-            from:
-                Number(
-                    input.dataset.from
-                ),
-
-            to:
-                Number(
-                    input.dataset.to
-                ),
-
-            value:
-                number(input.value)
-        };
-
-    });
-}
-
-
-/* =========================================================
-   وضع قيمة التثبيت من جدول VIP
-========================================================= */
-
-function setDefaultLockValue() {
-
-    const target =
-        Number(targetVip.value);
-
-    const data =
-        getVip(target);
-
-    if (!data) {
-        return;
-    }
-
-    lockValue.value =
-        data.maintain;
-
-    updateLockReference();
-
-    calculate();
 }
 
 
 /* =========================================================
    مرجع التثبيت
+
+   فقط يعرض قيمة الجدول كمرجع.
+   لا يضعها داخل input.
 ========================================================= */
 
 function updateLockReference() {
@@ -670,14 +514,86 @@ function updateLockReference() {
     if (!data) {
 
         lockReference.textContent =
-            "";
+            "أدخل قيمة التثبيت يدوياً.";
+
+        return;
+    }
+
+    lockReference.textContent =
+        `مرجع جدول VIP ${target}: ${format(data.maintain)} — هذه القيمة للمرجع فقط ولن يتم إدخالها تلقائياً.`;
+}
+
+
+/* =========================================================
+   حالة الحسبة
+========================================================= */
+
+function setCalculationStatus(type, text) {
+
+    calculationStatus.className =
+        `calculation-status status-${type}`;
+
+    calculationStatus.innerHTML = `
+        <span class="status-dot"></span>
+        <strong>${text}</strong>
+    `;
+}
+
+
+/* =========================================================
+   تحديث واجهة الوضع
+========================================================= */
+
+function updateModeUI() {
+
+    const mode =
+        getMode();
+
+    const reachLabel =
+        $("reachModeLabel");
+
+    const currentLabel =
+        $("currentLockLabel");
+
+
+    reachLabel.classList.toggle(
+        "active",
+        mode === "reach"
+    );
+
+    currentLabel.classList.toggle(
+        "active",
+        mode === "currentLock"
+    );
+
+
+    if (mode === "currentLock") {
+
+        transitionArea
+            .classList.add("hidden");
+
+        targetLockBox
+            .classList.add("hidden");
+
+        currentLockArea
+            .classList.remove("hidden");
+
+        calculate();
 
         return;
     }
 
 
-    lockReference.textContent =
-        `قيمة التثبيت في جدول VIP ${target}: ${format(data.maintain)} — ويمكنك تعديلها للعميل.`;
+    currentLockArea
+        .classList.add("hidden");
+
+    transitionArea
+        .classList.remove("hidden");
+
+    targetLockBox
+        .classList.remove("hidden");
+
+    calculate();
 }
 
 
@@ -690,61 +606,48 @@ function calculate() {
     const mode =
         getMode();
 
-
-    const vipCurrent =
+    const current =
         Number(currentVip.value);
 
-    const vipTarget =
+    const target =
         Number(targetVip.value);
-
 
     const x =
         number(multiplier.value);
 
-
     const supportPerMillion =
         number(supportRate.value);
 
-
     const jodPerMillion =
         number(jodRate.value);
-
 
     const usdPerMillion =
         number(usdRate.value);
 
 
-    /*
-    ================================================
-    حالة تثبيت المستوى الحالي فقط
-    ================================================
-    */
+    updateVipRoute();
 
-    if (
-        mode === "currentLock"
-    ) {
 
-        /*
-        في هذه الحالة القيمة الوحيدة
-        هي المتبقي الفعلي للتثبيت.
+    /* =====================================================
+       تثبيت المستوى الحالي فقط
+    ===================================================== */
 
-        لا نضيف XP للترقية.
-        لا نضيف قيمة المستوى.
-        */
+    if (mode === "currentLock") {
 
-        const currentLock =
-            getCurrentLockValue();
-
+        const lock =
+            number(
+                currentLockValue.value
+            );
 
         const total =
-            currentLock;
+            lock;
 
 
         showCalculation(
-            vipCurrent,
-            vipCurrent,
+            current,
+            current,
             0,
-            currentLock,
+            lock,
             total,
             x,
             supportPerMillion,
@@ -752,23 +655,35 @@ function calculate() {
             usdPerMillion
         );
 
+
+        if (lock > 0) {
+
+            setCalculationStatus(
+                "success",
+                "الحسبة جاهزة"
+            );
+
+        } else {
+
+            setCalculationStatus(
+                "waiting",
+                "انتظار إدخال قيمة التثبيت"
+            );
+        }
+
         return;
     }
 
 
-    /*
-    ================================================
-    حالة الوصول إلى مستوى آخر
-    ================================================
-    */
+    /* =====================================================
+       الوصول إلى مستوى
+    ===================================================== */
 
-    if (
-        vipTarget <= vipCurrent
-    ) {
+    if (target <= current) {
 
         showCalculation(
-            vipCurrent,
-            vipTarget,
+            current,
+            target,
             0,
             0,
             0,
@@ -778,30 +693,29 @@ function calculate() {
             usdPerMillion
         );
 
+
+        setCalculationStatus(
+            "error",
+            "اختر مستوى مطلوب أعلى من المستوى الحالي"
+        );
+
         return;
     }
 
 
     /*
-    نقاط الوصول:
-    مجموع القيم التي أدخلها المستخدم فقط.
+    القيمة الوحيدة التي يدخلها المستخدم للوصول.
     */
 
-    const transitions =
-        getTransitionValues();
-
-
     const reach =
-        transitions.reduce(
-            (sum, item) =>
-                sum + number(item.value),
-            0
+        number(
+            reachValue.value
         );
 
 
     /*
-    نقاط التثبيت.
-    لا تضاف إلا إذا فعل المستخدم التثبيت.
+    قيمة التثبيت لا تدخل إلا إذا المستخدم فعل المفتاح
+    وكتب قيمة بنفسه.
     */
 
     let lock = 0;
@@ -811,21 +725,19 @@ function calculate() {
     ) {
 
         lock =
-            number(lockValue.value);
+            number(
+                lockValue.value
+            );
     }
 
-
-    /*
-    الإجمالي النهائي لنقاط VIP.
-    */
 
     const total =
         reach + lock;
 
 
     showCalculation(
-        vipCurrent,
-        vipTarget,
+        current,
+        target,
         reach,
         lock,
         total,
@@ -834,89 +746,42 @@ function calculate() {
         jodPerMillion,
         usdPerMillion
     );
-}
 
 
-/* =========================================================
-   تثبيت المستوى الحالي
-========================================================= */
+    if (reach <= 0) {
 
-function getCurrentLockValue() {
-
-    /*
-    خانة التثبيت الحالية يتم إنشاؤها
-    داخل transitionList في هذا الوضع.
-    */
-
-    const input =
-        document.querySelector(
-            ".current-lock-value"
+        setCalculationStatus(
+            "waiting",
+            "انتظار إدخال قيمة المتبقي"
         );
 
-    return input
-        ? number(input.value)
-        : 0;
+        return;
+    }
+
+
+    if (
+        enableTargetLock.checked &&
+        lock <= 0
+    ) {
+
+        setCalculationStatus(
+            "waiting",
+            "أدخل قيمة التثبيت أو أوقف التثبيت"
+        );
+
+        return;
+    }
+
+
+    setCalculationStatus(
+        "success",
+        "الحسبة جاهزة"
+    );
 }
 
 
 /* =========================================================
-   إنشاء خانة تثبيت المستوى الحالي
-========================================================= */
-
-function renderCurrentLock() {
-
-    transitionArea
-        .classList.remove("hidden");
-
-    targetLockBox
-        .classList.add("hidden");
-
-
-    transitionList.innerHTML = `
-
-        <div class="transition">
-
-            <div class="transition-head">
-
-                <span>تثبيت فقط</span>
-
-                <strong>
-                    VIP ${Number(currentVip.value)}
-                </strong>
-
-            </div>
-
-
-            <div class="field">
-
-                <label>
-                    المتبقي الفعلي للتثبيت
-                </label>
-
-                <input
-                    class="current-lock-value"
-                    type="number"
-                    min="0"
-                    step="1"
-                    placeholder="مثال: 15000000"
-                >
-
-                <small>
-                    أدخل الرقم الموجود فعلياً في صورة العميل.
-                </small>
-
-            </div>
-
-        </div>
-    `;
-
-
-    calculate();
-}
-
-
-/* =========================================================
-   عرض الحساب
+   عرض النتيجة
 ========================================================= */
 
 function showCalculation(
@@ -931,12 +796,6 @@ function showCalculation(
     usdRateValue
 ) {
 
-    /*
-    الشحن الفعلي:
-
-    إجمالي نقاط VIP ÷ العرض
-    */
-
     let charge = 0;
 
     if (x > 0) {
@@ -946,22 +805,10 @@ function showCalculation(
     }
 
 
-    /*
-    الدعم:
-
-    الشحن الفعلي ÷ 1M × دعم المليون
-    */
-
     const support =
         (charge / 1000000) *
         supportRateValue;
 
-
-    /*
-    المال:
-
-    الشحن الفعلي ÷ 1M × سعر المليون
-    */
 
     const jod =
         (charge / 1000000) *
@@ -972,10 +819,6 @@ function showCalculation(
         (charge / 1000000) *
         usdRateValue;
 
-
-    /*
-    النصوص.
-    */
 
     if (current === target) {
 
@@ -996,26 +839,20 @@ function showCalculation(
     actualCharge.textContent =
         format(charge);
 
-
     reachPoints.textContent =
         format(reach);
-
 
     lockPoints.textContent =
         format(lock);
 
-
     totalVipPoints.textContent =
         format(total);
-
 
     supportNeeded.textContent =
         format(support);
 
-
     jodTotal.textContent =
         formatMoney(jod, "د.أ");
-
 
     usdTotal.textContent =
         formatMoney(usd, "$");
@@ -1024,10 +861,8 @@ function showCalculation(
     formulaVip.textContent =
         format(total);
 
-
     formulaMultiplier.textContent =
         `×${x}`;
-
 
     formulaCharge.textContent =
         format(charge);
@@ -1039,50 +874,7 @@ function showCalculation(
 
 
 /* =========================================================
-   تحديث واجهة نوع العملية
-========================================================= */
-
-function updateModeUI() {
-
-    const mode =
-        getMode();
-
-
-    const reachLabel =
-        $("reachModeLabel");
-
-    const currentLabel =
-        $("currentLockLabel");
-
-
-    reachLabel.classList.toggle(
-        "active",
-        mode === "reach"
-    );
-
-
-    currentLabel.classList.toggle(
-        "active",
-        mode === "currentLock"
-    );
-
-
-    if (
-        mode === "currentLock"
-    ) {
-
-        renderCurrentLock();
-
-        return;
-    }
-
-
-    renderTransitions();
-}
-
-
-/* =========================================================
-   حفظ العملاء
+   حفظ سجلات VIP
 ========================================================= */
 
 function getRecords() {
@@ -1122,17 +914,15 @@ function saveRecords(records) {
 
 
 /* =========================================================
-   إنشاء سجل كامل
+   إنشاء سجل
 ========================================================= */
 
 function createRecord() {
 
     calculate();
 
-
     const mode =
         getMode();
-
 
     return {
 
@@ -1148,9 +938,7 @@ function createRecord() {
         clientId:
             clientId.value.trim(),
 
-        mode:
-
-            mode,
+        mode,
 
         currentVip:
             Number(currentVip.value),
@@ -1161,18 +949,25 @@ function createRecord() {
         multiplier:
             number(multiplier.value),
 
-        transitions:
-            getTransitionValues(),
+        reachValue:
+            mode === "reach"
+                ? number(reachValue.value)
+                : 0,
 
         currentLock:
             mode === "currentLock"
-                ? getCurrentLockValue()
+                ? number(currentLockValue.value)
                 : 0,
 
         targetLockEnabled:
-            enableTargetLock.checked,
+            mode === "reach"
+                ? Boolean(
+                    enableTargetLock.checked
+                )
+                : false,
 
         targetLock:
+            mode === "reach" &&
             enableTargetLock.checked
                 ? number(lockValue.value)
                 : 0,
@@ -1190,7 +985,7 @@ function createRecord() {
 
 
 /* =========================================================
-   زر الحفظ
+   حفظ العملية
 ========================================================= */
 
 $("saveBtn").addEventListener(
@@ -1213,34 +1008,30 @@ $("saveBtn").addEventListener(
         }
 
 
+        const record =
+            createRecord();
+
+
         const records =
             getRecords();
 
 
-        /*
-        حفظ نسخة جديدة من العملية.
-        */
-
-        records.unshift(
-            createRecord()
-        );
+        records.unshift(record);
 
 
-        saveRecords(
-            records
-        );
+        saveRecords(records);
 
 
         clientStatus.textContent =
             `تم حفظ العملية للعميل ID: ${id}`;
 
-        clientStatus
-            .classList.remove(
-                "hidden"
-            );
+        clientStatus.classList.remove(
+            "hidden"
+        );
 
 
         renderHistory();
+
 
         alert(
             "تم حفظ العملية بنجاح."
@@ -1272,21 +1063,18 @@ function renderHistory() {
 
                 !query ||
 
-                String(
-                    record.clientId
-                )
+                String(record.clientId)
                     .toLowerCase()
                     .includes(query)
 
                 ||
 
-                String(
-                    record.clientName
-                )
+                String(record.clientName)
                     .toLowerCase()
                     .includes(query)
 
             );
+
         });
 
 
@@ -1317,14 +1105,14 @@ function renderHistory() {
         const date =
             new Date(
                 record.created
-            ).toLocaleString(
-                "ar"
-            );
+            ).toLocaleString("ar");
 
 
         const operation =
             record.mode === "currentLock"
+
                 ? `تثبيت VIP ${record.currentVip}`
+
                 : `VIP ${record.currentVip} → VIP ${record.targetVip}`;
 
 
@@ -1340,13 +1128,21 @@ function renderHistory() {
                 </strong>
 
                 <span>
-                    ID:
-                    ${safe(record.clientId)}
+                    ID: ${safe(record.clientId)}
                 </span>
 
                 <span>
                     ${operation}
                     · ×${record.multiplier}
+                </span>
+
+                <span>
+                    المتبقي:
+                    ${
+                        record.mode === "currentLock"
+                            ? format(record.currentLock)
+                            : format(record.reachValue)
+                    }
                 </span>
 
                 <span>
@@ -1359,12 +1155,14 @@ function renderHistory() {
             <div class="history-buttons">
 
                 <button
+                    type="button"
                     data-open="${record.id}"
                 >
                     فتح
                 </button>
 
                 <button
+                    type="button"
                     class="delete"
                     data-delete="${record.id}"
                 >
@@ -1375,9 +1173,8 @@ function renderHistory() {
         `;
 
 
-        history.appendChild(
-            item
-        );
+        history.appendChild(item);
+
     });
 }
 
@@ -1389,22 +1186,27 @@ function renderHistory() {
 function safe(value) {
 
     return String(value)
+
         .replaceAll(
             "&",
             "&amp;"
         )
+
         .replaceAll(
             "<",
             "&lt;"
         )
+
         .replaceAll(
             ">",
             "&gt;"
         )
+
         .replaceAll(
             '"',
             "&quot;"
         )
+
         .replaceAll(
             "'",
             "&#039;"
@@ -1413,7 +1215,7 @@ function safe(value) {
 
 
 /* =========================================================
-   فتح سجل
+   فتح / حذف سجل
 ========================================================= */
 
 history.addEventListener(
@@ -1422,7 +1224,6 @@ history.addEventListener(
 
         const openId =
             event.target.dataset.open;
-
 
         const deleteId =
             event.target.dataset.delete;
@@ -1433,6 +1234,8 @@ history.addEventListener(
             loadRecord(
                 Number(openId)
             );
+
+            return;
         }
 
 
@@ -1442,6 +1245,7 @@ history.addEventListener(
                 Number(deleteId)
             );
         }
+
     }
 );
 
@@ -1503,24 +1307,25 @@ function loadRecord(id) {
 
 
     /*
-    نوع العملية.
+    الوصول:
+    القيمة الواحدة فقط.
     */
 
-    const modeRadio =
-        document.querySelector(
-            `input[name="mode"][value="${record.mode}"]`
-        );
-
-
-    if (modeRadio) {
-
-        modeRadio.checked =
-            true;
-    }
+    reachValue.value =
+        record.reachValue || "";
 
 
     /*
-    التثبيت.
+    تثبيت المستوى الحالي.
+    */
+
+    currentLockValue.value =
+        record.currentLock || "";
+
+
+    /*
+    تثبيت الهدف.
+    لا نضع أي قيمة تلقائية.
     */
 
     enableTargetLock.checked =
@@ -1539,48 +1344,21 @@ function loadRecord(id) {
     );
 
 
+    const radio =
+        document.querySelector(
+            `input[name="mode"][value="${record.mode}"]`
+        );
+
+
+    if (radio) {
+
+        radio.checked = true;
+    }
+
+
     updateModeUI();
 
-
-    /*
-    بعد renderTransitions
-    يتم استبدال القيم بالقيم المحفوظة.
-    */
-
-    if (
-        record.mode === "reach"
-    ) {
-
-        renderTransitions(
-            record.transitions || []
-        );
-    }
-
-
-    /*
-    إذا كانت عملية تثبيت فقط.
-    */
-
-    if (
-        record.mode === "currentLock"
-    ) {
-
-        renderCurrentLock();
-
-        const input =
-            document.querySelector(
-                ".current-lock-value"
-            );
-
-        if (input) {
-
-            input.value =
-                record.currentLock || "";
-        }
-    }
-
-
-    updateLockReference();
+    updateVipRoute();
 
     calculate();
 
@@ -1588,10 +1366,9 @@ function loadRecord(id) {
     clientStatus.textContent =
         `تم فتح سجل العميل ID: ${record.clientId}`;
 
-    clientStatus
-        .classList.remove(
-            "hidden"
-        );
+    clientStatus.classList.remove(
+        "hidden"
+    );
 
 
     window.scrollTo({
@@ -1617,62 +1394,57 @@ function deleteRecord(id) {
 
 
     const records =
-        getRecords()
-            .filter(
-                item =>
-                    item.id !== id
-            );
+        getRecords().filter(
+            item =>
+                item.id !== id
+        );
 
 
-    saveRecords(
-        records
-    );
-
+    saveRecords(records);
 
     renderHistory();
 }
 
 
 /* =========================================================
-   حذف الكل
+   حذف كل السجل
 ========================================================= */
 
-$("clearHistory")
-    .addEventListener(
-        "click",
-        () => {
+$("clearHistory").addEventListener(
+    "click",
+    () => {
 
-            const records =
-                getRecords();
-
-
-            if (!records.length) {
-
-                alert(
-                    "السجل فارغ."
-                );
-
-                return;
-            }
+        const records =
+            getRecords();
 
 
-            if (
-                !confirm(
-                    "هل تريد حذف جميع العمليات المحفوظة؟"
-                )
-            ) {
-                return;
-            }
+        if (!records.length) {
 
-
-            localStorage.removeItem(
-                STORAGE_KEY
+            alert(
+                "السجل فارغ."
             );
 
-
-            renderHistory();
+            return;
         }
-    );
+
+
+        if (
+            !confirm(
+                "هل تريد حذف جميع العمليات المحفوظة؟"
+            )
+        ) {
+            return;
+        }
+
+
+        localStorage.removeItem(
+            STORAGE_KEY
+        );
+
+
+        renderHistory();
+    }
+);
 
 
 /* =========================================================
@@ -1693,7 +1465,9 @@ currentVip.addEventListener(
     "change",
     () => {
 
-        updateModeUI();
+        updateVipRoute();
+
+        calculate();
     }
 );
 
@@ -1702,19 +1476,26 @@ targetVip.addEventListener(
     "change",
     () => {
 
-        if (
-            getMode() === "reach"
-        ) {
+        updateVipRoute();
 
-            renderTransitions();
-
-        } else {
-
-            updateLockReference();
-
-            calculate();
-        }
+        calculate();
     }
+);
+
+
+/* =========================================================
+   المتبقي
+========================================================= */
+
+reachValue.addEventListener(
+    "input",
+    calculate
+);
+
+
+currentLockValue.addEventListener(
+    "input",
+    calculate
 );
 
 
@@ -1747,22 +1528,13 @@ enableTargetLock.addEventListener(
 
 
             /*
-            إذا لم توجد قيمة،
-            استخدم قيمة الحفاظ من جدول المستوى المطلوب.
+            مهم:
+            لا يتم وضع قيمة من جدول VIP.
             */
 
-            if (
-                !number(
-                    lockValue.value
-                )
-            ) {
+            lockValue.value = "";
 
-                setDefaultLockValue();
-
-            } else {
-
-                calculate();
-            }
+            lockValue.focus();
 
         } else {
 
@@ -1771,14 +1543,22 @@ enableTargetLock.addEventListener(
                     "hidden"
                 );
 
-            calculate();
+            /*
+            عند إيقاف التثبيت
+            يتم تصفيره بالكامل.
+            */
+
+            lockValue.value = "";
         }
+
+
+        calculate();
     }
 );
 
 
 /* =========================================================
-   تغيير قيمة التثبيت
+   قيمة التثبيت
 ========================================================= */
 
 lockValue.addEventListener(
@@ -1788,7 +1568,7 @@ lockValue.addEventListener(
 
 
 /* =========================================================
-   تغييرات الأسعار
+   الأسعار
 ========================================================= */
 
 [
@@ -1801,27 +1581,8 @@ lockValue.addEventListener(
         "input",
         calculate
     );
+
 });
-
-
-/* =========================================================
-   تغييرات خانات الانتقال
-========================================================= */
-
-transitionList.addEventListener(
-    "input",
-    event => {
-
-        if (
-            event.target.matches(
-                ".transition-value, .current-lock-value"
-            )
-        ) {
-
-            calculate();
-        }
-    }
-);
 
 
 /* =========================================================
@@ -1838,6 +1599,7 @@ document
             "change",
             updateModeUI
         );
+
     });
 
 
@@ -1845,90 +1607,719 @@ document
    زر الحساب
 ========================================================= */
 
-$("calculateBtn")
-    .addEventListener(
-        "click",
-        calculate
-    );
+$("calculateBtn").addEventListener(
+    "click",
+    calculate
+);
 
 
 /* =========================================================
    عملية جديدة
 ========================================================= */
 
-$("newBtn")
-    .addEventListener(
+$("newBtn").addEventListener(
+    "click",
+    () => {
+
+        if (
+            !confirm(
+                "بدء عملية جديدة؟ السجلات المحفوظة لن تحذف."
+            )
+        ) {
+            return;
+        }
+
+
+        clientName.value = "";
+
+        clientId.value = "";
+
+        currentVip.value = "10";
+
+        targetVip.value = "11";
+
+        multiplier.value = "5";
+
+        reachValue.value = "";
+
+        currentLockValue.value = "";
+
+        lockValue.value = "";
+
+        enableTargetLock.checked = false;
+
+        targetLockInput.classList.add(
+            "hidden"
+        );
+
+        supportRate.value =
+            "130000";
+
+        jodRate.value =
+            "11";
+
+        usdRate.value =
+            "15";
+
+
+        const reachRadio =
+            document.querySelector(
+                'input[name="mode"][value="reach"]'
+            );
+
+
+        reachRadio.checked =
+            true;
+
+
+        clientStatus.classList.add(
+            "hidden"
+        );
+
+
+        updateModeUI();
+
+        calculate();
+
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+
+    }
+);
+
+
+/* =========================================================
+   الوضع الليلي / النهاري
+========================================================= */
+
+const themeToggle =
+    $("themeToggle");
+
+
+function applyTheme(theme) {
+
+    document.body.classList.toggle(
+        "light-mode",
+        theme === "light"
+    );
+
+
+    themeToggle.textContent =
+        theme === "light"
+            ? "🌙"
+            : "☀️";
+}
+
+
+const savedTheme =
+    localStorage.getItem(
+        THEME_KEY
+    );
+
+
+applyTheme(
+    savedTheme || "dark"
+);
+
+
+themeToggle.addEventListener(
+    "click",
+    () => {
+
+        const isLight =
+            document.body.classList.contains(
+                "light-mode"
+            );
+
+
+        const newTheme =
+            isLight
+                ? "dark"
+                : "light";
+
+
+        localStorage.setItem(
+            THEME_KEY,
+            newTheme
+        );
+
+
+        applyTheme(newTheme);
+    }
+);
+
+
+/* =========================================================
+   الحاسبة العادية
+========================================================= */
+
+(function () {
+
+    const result =
+        $("calculatorResult");
+
+    const calcHistory =
+        $("calculatorHistory");
+
+    const buttons =
+        document.querySelectorAll(
+            ".calc-btn"
+        );
+
+    const copyButton =
+        $("calcCopy");
+
+    const clearCalcHistory =
+        $("calcClearHistory");
+
+    const savedHistory =
+        $("calcSavedHistory");
+
+
+    if (
+        !result ||
+        !buttons.length
+    ) {
+        return;
+    }
+
+
+    let expression = "";
+
+
+    function updateDisplay() {
+
+        result.textContent =
+            expression || "0";
+    }
+
+
+    function getCalcHistory() {
+
+        try {
+
+            const data =
+                localStorage.getItem(
+                    CALC_HISTORY_KEY
+                );
+
+            if (!data) {
+                return [];
+            }
+
+            const parsed =
+                JSON.parse(data);
+
+            return Array.isArray(parsed)
+                ? parsed
+                : [];
+
+        } catch {
+
+            return [];
+        }
+    }
+
+
+    function saveCalcHistory(data) {
+
+        localStorage.setItem(
+            CALC_HISTORY_KEY,
+            JSON.stringify(data.slice(0, 20))
+        );
+    }
+
+
+    function renderCalcHistory() {
+
+        const records =
+            getCalcHistory();
+
+
+        savedHistory.innerHTML = "";
+
+
+        if (!records.length) {
+
+            savedHistory.innerHTML = `
+                <div class="calc-history-empty">
+                    لا توجد عمليات سابقة
+                </div>
+            `;
+
+            return;
+        }
+
+
+        records.forEach(item => {
+
+            const row =
+                document.createElement("button");
+
+            row.type = "button";
+
+            row.className =
+                "calc-history-row";
+
+
+            row.innerHTML = `
+
+                <span>
+                    ${safe(item.expression)}
+                </span>
+
+                <strong>
+                    ${safe(item.result)}
+                </strong>
+
+            `;
+
+
+            row.addEventListener(
+                "click",
+                () => {
+
+                    expression =
+                        item.result;
+
+                    calcHistory.textContent =
+                        item.expression + " =";
+
+                    updateDisplay();
+
+                }
+            );
+
+
+            savedHistory.appendChild(row);
+
+        });
+    }
+
+
+    function calculateNormal() {
+
+        if (!expression) {
+            return;
+        }
+
+
+        try {
+
+            let exp =
+                expression
+                    .replace(
+                        /×/g,
+                        "*"
+                    )
+                    .replace(
+                        /÷/g,
+                        "/"
+                    );
+
+
+            /*
+            نسبة مئوية:
+            50% = 0.5
+            */
+
+            exp =
+                exp.replace(
+                    /(\d+(?:\.\d+)?)%/g,
+                    "($1/100)"
+                );
+
+
+            if (
+                !/^[0-9+\-*/().%\s]+$/.test(
+                    exp
+                )
+            ) {
+
+                throw new Error(
+                    "Invalid"
+                );
+            }
+
+
+            const answer =
+                Function(
+                    `"use strict"; return (${exp})`
+                )();
+
+
+            if (
+                !Number.isFinite(answer)
+            ) {
+
+                throw new Error(
+                    "Invalid"
+                );
+            }
+
+
+            const cleanAnswer =
+                Number.isInteger(answer)
+                    ? String(answer)
+                    : String(
+                        Number(
+                            answer.toFixed(10)
+                        )
+                    );
+
+
+            calcHistory.textContent =
+                expression + " =";
+
+
+            const records =
+                getCalcHistory();
+
+
+            records.unshift({
+
+                expression:
+                    expression,
+
+                result:
+                    cleanAnswer,
+
+                created:
+                    Date.now()
+
+            });
+
+
+            saveCalcHistory(
+                records
+            );
+
+
+            expression =
+                cleanAnswer;
+
+
+            updateDisplay();
+
+            renderCalcHistory();
+
+
+        } catch {
+
+            calcHistory.textContent =
+                expression;
+
+            result.textContent =
+                "خطأ";
+
+            expression = "";
+
+        }
+    }
+
+
+    function addValue(value) {
+
+        /*
+        منع أكثر من فاصلة عشرية في نفس الرقم.
+        */
+
+        if (value === ".") {
+
+            const parts =
+                expression.split(
+                    /[+\-*/]/
+                );
+
+            const last =
+                parts[parts.length - 1];
+
+
+            if (
+                last.includes(".")
+            ) {
+                return;
+            }
+        }
+
+
+        /*
+        منع تكرار العمليات.
+        */
+
+        if (
+            ["+", "-", "*", "/"].includes(
+                value
+            )
+        ) {
+
+            if (!expression) {
+
+                if (value !== "-") {
+                    return;
+                }
+            }
+
+
+            const last =
+                expression.slice(-1);
+
+
+            if (
+                ["+", "-", "*", "/"].includes(
+                    last
+                )
+            ) {
+
+                expression =
+                    expression.slice(
+                        0,
+                        -1
+                    );
+            }
+        }
+
+
+        expression += value;
+
+        updateDisplay();
+    }
+
+
+    buttons.forEach(button => {
+
+        button.addEventListener(
+            "click",
+            function () {
+
+                const value =
+                    this.dataset.value;
+
+                const action =
+                    this.dataset.action;
+
+
+                if (
+                    action === "clear"
+                ) {
+
+                    expression = "";
+
+                    calcHistory.textContent =
+                        "";
+
+                    updateDisplay();
+
+                    return;
+                }
+
+
+                if (
+                    action === "delete"
+                ) {
+
+                    expression =
+                        expression.slice(
+                            0,
+                            -1
+                        );
+
+                    updateDisplay();
+
+                    return;
+                }
+
+
+                if (
+                    action === "equals"
+                ) {
+
+                    calculateNormal();
+
+                    return;
+                }
+
+
+                if (value) {
+
+                    addValue(value);
+
+                }
+
+            }
+        );
+
+    });
+
+
+    /*
+    لوحة مفاتيح الجهاز.
+    */
+
+    document.addEventListener(
+        "keydown",
+        event => {
+
+            const tag =
+                document.activeElement.tagName;
+
+
+            if (
+                tag === "INPUT" ||
+                tag === "SELECT" ||
+                tag === "TEXTAREA"
+            ) {
+                return;
+            }
+
+
+            const key =
+                event.key;
+
+
+            if (
+                /[0-9.]/.test(key)
+            ) {
+
+                addValue(key);
+
+                return;
+            }
+
+
+            if (
+                ["+", "-", "*", "/"].includes(
+                    key
+                )
+            ) {
+
+                addValue(key);
+
+                return;
+            }
+
+
+            if (key === "Enter" || key === "=") {
+
+                calculateNormal();
+
+                return;
+            }
+
+
+            if (key === "Backspace") {
+
+                expression =
+                    expression.slice(
+                        0,
+                        -1
+                    );
+
+                updateDisplay();
+
+                return;
+            }
+
+
+            if (key === "Escape") {
+
+                expression = "";
+
+                calcHistory.textContent =
+                    "";
+
+                updateDisplay();
+            }
+
+        }
+    );
+
+
+    /*
+    نسخ النتيجة.
+    */
+
+    copyButton.addEventListener(
+        "click",
+        async () => {
+
+            const value =
+                result.textContent;
+
+
+            if (
+                !value ||
+                value === "0" ||
+                value === "خطأ"
+            ) {
+                return;
+            }
+
+
+            try {
+
+                await navigator.clipboard.writeText(
+                    value
+                );
+
+                copyButton.textContent =
+                    "تم النسخ";
+
+                setTimeout(
+                    () => {
+                        copyButton.textContent =
+                            "نسخ";
+                    },
+                    1200
+                );
+
+            } catch {
+
+                alert(
+                    "تعذر نسخ الرقم."
+                );
+            }
+
+        }
+    );
+
+
+    /*
+    مسح سجل الحاسبة العادية.
+    */
+
+    clearCalcHistory.addEventListener(
         "click",
         () => {
 
             if (
                 !confirm(
-                    "بدء عملية جديدة؟ السجلات المحفوظة لن تحذف."
+                    "هل تريد مسح سجل الحاسبة؟"
                 )
             ) {
                 return;
             }
 
 
-            clientName.value = "";
-
-            clientId.value = "";
-
-            currentVip.value = "10";
-
-            targetVip.value = "11";
-
-            multiplier.value = "5";
-
-            supportRate.value =
-                "130000";
-
-            jodRate.value =
-                "11";
-
-            usdRate.value =
-                "15";
-
-            lockValue.value =
-                "";
-
-            enableTargetLock.checked =
-                false;
+            localStorage.removeItem(
+                CALC_HISTORY_KEY
+            );
 
 
-            targetLockInput
-                .classList.add(
-                    "hidden"
-                );
+            renderCalcHistory();
 
-
-            const reach =
-                document.querySelector(
-                    'input[name="mode"][value="reach"]'
-                );
-
-
-            reach.checked =
-                true;
-
-
-            clientStatus
-                .classList.add(
-                    "hidden"
-                );
-
-
-            updateModeUI();
-
-            calculate();
-
-
-            window.scrollTo({
-                top: 0,
-                behavior: "smooth"
-            });
         }
     );
+
+
+    updateDisplay();
+
+    renderCalcHistory();
+
+})();
 
 
 /* =========================================================
@@ -1939,104 +2330,10 @@ buildVipOptions();
 
 renderVipTable();
 
+updateVipRoute();
+
 updateModeUI();
 
 renderHistory();
 
 calculate();
-
-/* =========================
-   الحاسبة العادية
-========================= */
-
-(function () {
-
-    const result = document.getElementById("calculatorResult");
-    const history = document.getElementById("calculatorHistory");
-    const buttons = document.querySelectorAll(".calc-btn");
-
-    if (!result || !history || !buttons.length) return;
-
-    let expression = "";
-
-    function updateDisplay() {
-        result.textContent = expression || "0";
-    }
-
-    function calculate() {
-
-        if (!expression) return;
-
-        try {
-
-            let exp = expression
-                .replace(/×/g, "*")
-                .replace(/÷/g, "/")
-                .replace(/%/g, "/100");
-
-            if (!/^[0-9+\-*/().\s]+$/.test(exp)) {
-                throw new Error("Invalid");
-            }
-
-            const answer = Function(
-                `"use strict"; return (${exp})`
-            )();
-
-            if (!Number.isFinite(answer)) {
-                throw new Error("Invalid");
-            }
-
-            history.textContent = expression + " =";
-
-            expression = String(
-                Number.isInteger(answer)
-                    ? answer
-                    : Number(answer.toFixed(10))
-            );
-
-            updateDisplay();
-
-        } catch (error) {
-
-            history.textContent = expression;
-            result.textContent = "خطأ";
-            expression = "";
-
-        }
-    }
-
-    buttons.forEach(button => {
-
-        button.addEventListener("click", function () {
-
-            const value = this.dataset.value;
-            const action = this.dataset.action;
-
-            if (action === "clear") {
-                expression = "";
-                history.textContent = "";
-                updateDisplay();
-                return;
-            }
-
-            if (action === "delete") {
-                expression = expression.slice(0, -1);
-                updateDisplay();
-                return;
-            }
-
-            if (action === "equals") {
-                calculate();
-                return;
-            }
-
-            if (value) {
-                expression += value;
-                updateDisplay();
-            }
-
-        });
-
-    });
-
-})();
