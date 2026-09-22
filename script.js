@@ -1336,9 +1336,12 @@ enableTargetLock.addEventListener(
 
 transitionList.addEventListener("input", function (event) {
 
+    const input = event.target;
+
     if (
-        event.target.classList.contains("transition-value") ||
-        event.target.classList.contains("current-lock-value")
+        input.classList.contains("first-transition-value") ||
+        input.classList.contains("transition-value") ||
+        input.classList.contains("current-lock-value")
     ) {
         calculate();
     }
@@ -1346,6 +1349,19 @@ transitionList.addEventListener("input", function (event) {
 });
 
 
+transitionList.addEventListener("change", function (event) {
+
+    const input = event.target;
+
+    if (
+        input.classList.contains("first-transition-value") ||
+        input.classList.contains("transition-value") ||
+        input.classList.contains("current-lock-value")
+    ) {
+        calculate();
+    }
+
+});
 
 /* =========================================================
    نوع العملية
