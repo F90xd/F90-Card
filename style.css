@@ -1,1290 +1,2289 @@
-* {
-  box-sizing: border-box;
+/* =========================================================
+   مجلس القمة للشحن
+   نظام حساب VIP
+   ========================================================= */
+
+
+/* =========================================================
+   مستويات VIP
+   ========================================================= */
+
+const LEVELS = [
+
+  { lv: 1, total: 50000, up: 50000, keep: 30000 },
+
+  { lv: 2, total: 100000, up: 50000, keep: 30000 },
+
+  { lv: 3, total: 300000, up: 100000, keep: 90000 },
+
+  { lv: 4, total: 1000000, up: 800000, keep: 500000 },
+
+  { lv: 5, total: 3000000, up: 2000000, keep: 1300000 },
+
+  { lv: 6, total: 7000000, up: 4000000, keep: 2600000 },
+
+  { lv: 7, total: 14000000, up: 7000000, keep: 4500000 },
+
+  { lv: 8, total: 26000000, up: 12000000, keep: 7800000 },
+
+  { lv: 9, total: 42000000, up: 16000000, keep: 11000000 },
+
+  { lv: 10, total: 62000000, up: 20000000, keep: 14000000 },
+
+  { lv: 11, total: 102000000, up: 40000000, keep: 28000000 },
+
+  { lv: 12, total: 220000000, up: 118000000, keep: 83000000 },
+
+  { lv: 13, total: 430000000, up: 210000000, keep: 150000000 },
+
+  { lv: 14, total: 820000000, up: 390000000, keep: 310000000 },
+
+  { lv: 15, total: 1820000000, up: 1000000000, keep: 700000000 },
+
+  { lv: 16, total: 3820000000, up: 2000000000, keep: 1400000000 },
+
+  { lv: 17, total: 7382000000, up: 3500000000, keep: 3000000000 },
+
+  { lv: 18, total: 11882000000, up: 4500000000, keep: 4000000000 },
+
+  { lv: 19, total: 17382000000, up: 5500000000, keep: 5000000000 },
+
+  { lv: 20, total: 27382000000, up: 10000000000, keep: 9000000000 }
+
+];
+
+
+/* =========================================================
+   STORAGE
+   ========================================================= */
+
+const STORAGE_KEY =
+  "majlis_alqimah_v2";
+
+const THEME_KEY =
+  "majlis_alqimah_theme_v2";
+
+
+function getDatabase() {
+
+  try {
+
+    const saved =
+      localStorage.getItem(STORAGE_KEY);
+
+    if (saved) {
+
+      return JSON.parse(saved);
+
+    }
+
+  } catch (error) {
+
+    console.error(error);
+
+  }
+
+
+  return {
+
+    settings: {
+
+      vip: 1,
+
+      throwPerMillion: 130000,
+
+      jodPerMillion: 11,
+
+      usdPerMillion: 15
+
+    },
+
+    customers: {}
+
+  };
+
 }
 
-:root {
-  --bg: #080a0e;
-  --surface: #11141a;
-  --surface-2: #171b22;
-  --border: rgba(255,255,255,.08);
-  --text: #f4f5f7;
-  --muted: #9299a6;
-  --gold: #d2a64c;
-  --gold-2: #f0c66b;
-  --green: #38d39f;
-  --red: #ff6574;
-  --shadow: 0 20px 60px rgba(0,0,0,.28);
-}
 
-body.light {
-  --bg: #f2f3f5;
-  --surface: #ffffff;
-  --surface-2: #f7f8fa;
-  --border: rgba(15,20,30,.09);
-  --text: #14171d;
-  --muted: #707784;
-  --gold: #a77a25;
-  --gold-2: #c09136;
-  --green: #168866;
-  --red: #c73544;
-  --shadow: 0 15px 45px rgba(20,25,35,.08);
-}
+function saveDatabase(data) {
 
-html {
-  scroll-behavior: smooth;
-}
+  localStorage.setItem(
 
-body {
-  margin: 0;
-  background:
-    radial-gradient(
-      circle at 15% 0%,
-      rgba(210,166,76,.10),
-      transparent 30%
-    ),
-    radial-gradient(
-      circle at 90% 15%,
-      rgba(100,80,180,.08),
-      transparent 28%
-    ),
-    var(--bg);
-  color: var(--text);
-  font-family: Tahoma, Arial, sans-serif;
-  line-height: 1.7;
-  min-height: 100vh;
-  transition: background .35s ease, color .35s ease;
-}
+    STORAGE_KEY,
 
-button,
-input,
-select {
-  font: inherit;
-}
+    JSON.stringify(data)
 
-button {
-  cursor: pointer;
-}
+  );
 
-.hidden {
-  display: none !important;
 }
 
 
-/* TOPBAR */
+/* =========================================================
+   ELEMENT
+   ========================================================= */
 
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  height: 76px;
-  padding: 0 max(18px, calc((100vw - 1180px) / 2));
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(9,11,15,.88);
-  backdrop-filter: blur(18px);
-  border-bottom: 1px solid rgba(255,255,255,.07);
+function $(id) {
+
+  return document.getElementById(id);
+
 }
 
-body.light .topbar {
-  background: rgba(255,255,255,.90);
-  border-bottom: 1px solid var(--border);
+
+/* =========================================================
+   FORMAT
+   ========================================================= */
+
+function numberFormat(
+
+  value,
+
+  decimals = 0
+
+) {
+
+  if (!Number.isFinite(Number(value))) {
+
+    return "0";
+
+  }
+
+
+  return new Intl.NumberFormat(
+
+    "en-US",
+
+    {
+
+      minimumFractionDigits: 0,
+
+      maximumFractionDigits: decimals
+
+    }
+
+  ).format(Number(value));
+
 }
 
-.brand-area {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+
+function getLevel(lv) {
+
+  return LEVELS.find(
+
+    level =>
+
+      level.lv === Number(lv)
+
+  );
+
 }
 
-.logo-mark {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border-radius: 13px;
-  background:
-    linear-gradient(
-      145deg,
-      var(--gold-2),
-      var(--gold)
+
+/* =========================================================
+   INITIALIZE LEVELS
+   ========================================================= */
+
+function initializeLevels() {
+
+  const current =
+    $("currentLevel");
+
+  const target =
+    $("targetLevel");
+
+
+  current.innerHTML = "";
+
+  target.innerHTML = "";
+
+
+  LEVELS.forEach(level => {
+
+    const a =
+      document.createElement("option");
+
+    a.value = level.lv;
+
+    a.textContent =
+      `VIP ${level.lv}`;
+
+    current.appendChild(a);
+
+
+    const b =
+      document.createElement("option");
+
+    b.value = level.lv;
+
+    b.textContent =
+      `VIP ${level.lv}`;
+
+    target.appendChild(b);
+
+  });
+
+
+  current.value = "1";
+
+  target.value = "2";
+
+
+  $("levelsBody").innerHTML =
+
+    LEVELS.map(level => `
+
+      <tr>
+
+        <td>VIP ${level.lv}</td>
+
+        <td>${numberFormat(level.total)}</td>
+
+        <td>${numberFormat(level.up)}</td>
+
+        <td>${numberFormat(level.keep)}</td>
+
+      </tr>
+
+    `).join("");
+
+}
+
+
+/* =========================================================
+   VIP BUTTONS
+   ========================================================= */
+
+function initializeVipButtons() {
+
+  const grid =
+    $("vipGrid");
+
+
+  grid.innerHTML = "";
+
+
+  for (let i = 1; i <= 10; i++) {
+
+    const button =
+      document.createElement("button");
+
+
+    button.type = "button";
+
+    button.className =
+      "vip-choice";
+
+
+    button.dataset.vip = i;
+
+    button.textContent =
+      `×${i}`;
+
+
+    button.addEventListener(
+
+      "click",
+
+      () => {
+
+        $("vip").value = i;
+
+      }
+
     );
-  color: #111;
-  font-size: 21px;
-  font-weight: 900;
-  box-shadow:
-    0 8px 30px rgba(210,166,76,.22);
-}
 
-.brand-name {
-  font-size: 17px;
-  font-weight: 900;
-}
 
-.brand-subtitle {
-  color: var(--muted);
-  font-size: 10px;
-}
+    /*
+      يوجد input مخفي منطقي
+      لتخزين القيمة المختارة.
+      ننشئه مرة واحدة أدناه.
+    */
 
-.theme-button {
-  width: 42px;
-  height: 42px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
-  color: var(--text);
-  font-size: 19px;
+    grid.appendChild(button);
+
+  }
+
+
+  updateVipButtons(1);
+
 }
 
 
-/* CONTAINER */
+/* =========================================================
+   VIP VALUE
+   ========================================================= */
 
-.container {
-  width: min(1120px, calc(100% - 28px));
-  margin: 30px auto 70px;
-}
-
-
-/* HERO */
-
-.hero {
-  min-height: 270px;
-  margin-bottom: 18px;
-  padding: 40px;
-  border: 1px solid var(--border);
-  border-radius: 26px;
-  background:
-    linear-gradient(
-      115deg,
-      rgba(210,166,76,.10),
-      transparent 40%
-    ),
-    var(--surface);
-  box-shadow: var(--shadow);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  overflow: hidden;
-  position: relative;
-}
-
-.hero::before {
-  content: "";
-  position: absolute;
-  width: 300px;
-  height: 300px;
-  left: -100px;
-  bottom: -180px;
-  border-radius: 50%;
-  border: 1px solid rgba(210,166,76,.25);
-  box-shadow:
-    0 0 0 40px rgba(210,166,76,.03),
-    0 0 0 80px rgba(210,166,76,.025);
-}
-
-.hero-content {
-  max-width: 690px;
-  position: relative;
-  z-index: 2;
-}
-
-.small-label {
-  color: var(--gold-2);
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 2px;
-}
-
-.hero h1 {
-  margin: 7px 0 8px;
-  font-size: clamp(29px, 5vw, 45px);
-  line-height: 1.15;
-}
-
-.hero p {
-  margin: 0;
-  color: var(--muted);
-  max-width: 650px;
-  font-size: 14px;
-}
+let selectedVip = 1;
 
 
-/* VIP ORB */
+function setVip(value) {
 
-.vip-orb {
-  width: 145px;
-  height: 145px;
-  flex: 0 0 145px;
-  border-radius: 50%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  border: 1px solid rgba(210,166,76,.45);
-  background:
-    radial-gradient(
-      circle,
-      rgba(210,166,76,.18),
-      transparent 65%
+  selectedVip =
+    Math.min(
+
+      10,
+
+      Math.max(
+
+        1,
+
+        Number(value) || 1
+
+      )
+
     );
-  box-shadow:
-    0 0 50px rgba(210,166,76,.13),
-    inset 0 0 40px rgba(210,166,76,.05);
-  animation: floatOrb 4s ease-in-out infinite;
+
+
+  updateVipButtons(
+
+    selectedVip
+
+  );
+
+
+  $("selectedVip").textContent =
+    `×${selectedVip}`;
+
+  $("heroVip").textContent =
+    `×${selectedVip}`;
+
+  $("resultVip").textContent =
+    `×${selectedVip}`;
+
 }
 
-.vip-orb span {
-  font-size: 12px;
-  color: var(--gold-2);
-  font-weight: 900;
-  letter-spacing: 3px;
+
+function updateVipButtons(vip) {
+
+  document
+
+    .querySelectorAll(
+
+      ".vip-choice"
+
+    )
+
+    .forEach(button => {
+
+      button.classList.toggle(
+
+        "active",
+
+        Number(
+
+          button.dataset.vip
+
+        ) === Number(vip)
+
+      );
+
+    });
+
 }
 
-.vip-orb strong {
-  font-size: 31px;
+
+/*
+  حقل VIP مخفي داخل الصفحة
+*/
+
+function createVipInput() {
+
+  const input =
+    document.createElement("input");
+
+  input.type = "hidden";
+
+  input.id = "vip";
+
+  input.value = "1";
+
+  document.body.appendChild(input);
+
 }
 
-.orb-glow {
-  position: absolute;
-  inset: 12px;
-  border-radius: 50%;
-  border: 1px dashed rgba(210,166,76,.32);
-  animation: rotateOrb 14s linear infinite;
+
+/* =========================================================
+   SETTINGS
+   ========================================================= */
+
+function loadSettings() {
+
+  const db =
+    getDatabase();
+
+
+  $("throwPerMillion").value =
+
+    db.settings.throwPerMillion ??
+    130000;
+
+
+  $("jodPerMillion").value =
+
+    db.settings.jodPerMillion ??
+    11;
+
+
+  $("usdPerMillion").value =
+
+    db.settings.usdPerMillion ??
+    15;
+
+
+  setVip(
+
+    db.settings.vip || 1
+
+  );
+
 }
 
-@keyframes floatOrb {
-  0%,100% {
-    transform: translateY(0);
+
+function saveSettings() {
+
+  const db =
+    getDatabase();
+
+
+  db.settings = {
+
+    vip: selectedVip,
+
+    throwPerMillion:
+
+      Number(
+
+        $("throwPerMillion").value
+
+      ) || 0,
+
+    jodPerMillion:
+
+      Number(
+
+        $("jodPerMillion").value
+
+      ) || 0,
+
+    usdPerMillion:
+
+      Number(
+
+        $("usdPerMillion").value
+
+      ) || 0
+
+  };
+
+
+  saveDatabase(db);
+
+
+  toast(
+    "تم حفظ إعدادات الشحن"
+  );
+
+}
+
+
+/* =========================================================
+   CUSTOMER
+   ========================================================= */
+
+function customerId() {
+
+  return $("customerId")
+
+    .value
+
+    .trim();
+
+}
+
+
+function loadCustomer(id) {
+
+  if (!id) {
+
+    $("savedBadge")
+
+      .classList
+
+      .add("hidden");
+
+    $("customerInfo")
+
+      .classList
+
+      .add("hidden");
+
+    renderHistory("");
+
+    return;
+
   }
-  50% {
-    transform: translateY(-8px);
+
+
+  const db =
+    getDatabase();
+
+
+  const customer =
+    db.customers[id];
+
+
+  if (!customer) {
+
+    $("savedBadge")
+
+      .classList
+
+      .add("hidden");
+
+    $("customerInfo")
+
+      .classList
+
+      .add("hidden");
+
+    renderHistory(id);
+
+    return;
+
   }
-}
-
-@keyframes rotateOrb {
-  to {
-    transform: rotate(360deg);
-  }
-}
 
 
-/* CARD */
+  $("savedBadge")
 
-.card {
-  background: rgba(17,20,26,.88);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 24px;
-  margin-bottom: 18px;
-  box-shadow: var(--shadow);
-  animation: cardIn .5s ease both;
-}
+    .classList
 
-body.light .card {
-  background: rgba(255,255,255,.92);
-}
-
-@keyframes cardIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+    .remove("hidden");
 
 
-/* SECTION TITLE */
+  $("customerName").value =
+    customer.name || "";
 
-.section-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 20px;
-}
 
-.section-title > div:first-child {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-}
+  $("currentLevel").value =
+    customer.currentLevel || 1;
 
-.section-number {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  border-radius: 10px;
-  background: rgba(210,166,76,.10);
-  color: var(--gold-2);
-  font-size: 11px;
-  font-weight: 900;
-}
 
-.section-title h2 {
-  margin: 0;
-  font-size: 19px;
-}
+  $("targetLevel").value =
+    customer.targetLevel || 2;
 
-.section-title p {
-  margin: 2px 0 0;
-  color: var(--muted);
-  font-size: 12px;
-}
 
-.saved-badge {
-  padding: 5px 10px;
-  border-radius: 99px;
-  color: var(--green);
-  background: rgba(56,211,159,.09);
-  font-size: 11px;
-  font-weight: 800;
+  $("currentSupport").value =
+    customer.currentSupport || 0;
+
+
+  $("customerInfo")
+
+    .classList
+
+    .remove("hidden");
+
+
+  $("infoId").textContent =
+    id;
+
+
+  $("infoOperations").textContent =
+    (customer.history || []).length;
+
+
+  $("infoUpdated").textContent =
+    customer.updatedAt
+      ? new Date(
+          customer.updatedAt
+        ).toLocaleString("ar-EG")
+      : "—";
+
+
+  updateLevelDisplay();
+
+  renderHistory(id);
+
 }
 
 
-/* FORM */
+/* =========================================================
+   CALCULATE MISSING
+   ========================================================= */
 
-.form-grid {
-  display: grid;
-  gap: 14px;
-}
+function calculateAutomaticReachMissing() {
 
-.form-grid.two {
-  grid-template-columns: repeat(2, 1fr);
-}
+  const current =
+    Number(
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
+      $("currentLevel").value
 
-.field label {
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-input,
-select {
-  width: 100%;
-  min-height: 47px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  outline: none;
-  padding: 11px 13px;
-  background: var(--surface-2);
-  color: var(--text);
-  transition: .2s;
-}
-
-input:focus,
-select:focus {
-  border-color: var(--gold);
-  box-shadow: 0 0 0 3px rgba(210,166,76,.09);
-}
-
-
-/* CUSTOMER INFO */
-
-.customer-info {
-  margin-top: 15px;
-  padding: 13px;
-  border-radius: 13px;
-  background: var(--surface-2);
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.customer-info span {
-  display: block;
-  color: var(--muted);
-  font-size: 10px;
-}
-
-.customer-info strong {
-  display: block;
-  font-size: 13px;
-}
-
-
-/* LEVEL SELECTOR */
-
-.level-selector {
-  display: grid;
-  grid-template-columns: 1fr 50px 1fr;
-  align-items: end;
-  gap: 12px;
-}
-
-.level-box {
-  padding: 15px;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: var(--surface-2);
-}
-
-.level-box span {
-  display: block;
-  color: var(--muted);
-  font-size: 11px;
-  margin-bottom: 7px;
-  font-weight: 800;
-}
-
-.level-box.target {
-  border-color: rgba(210,166,76,.35);
-}
-
-.level-arrow {
-  width: 50px;
-  height: 50px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  color: var(--gold-2);
-  background: rgba(210,166,76,.08);
-  font-size: 22px;
-}
-
-
-/* PROGRESS */
-
-.current-progress {
-  margin-top: 18px;
-  padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: 15px;
-}
-
-.progress-header,
-.progress-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.progress-header span,
-.progress-footer {
-  color: var(--muted);
-  font-size: 11px;
-}
-
-.progress-header strong {
-  font-size: 14px;
-}
-
-.progress-track {
-  height: 8px;
-  margin: 10px 0 6px;
-  border-radius: 99px;
-  background: rgba(255,255,255,.07);
-  overflow: hidden;
-}
-
-.progress-bar {
-  width: 0%;
-  height: 100%;
-  border-radius: 99px;
-  background:
-    linear-gradient(
-      90deg,
-      var(--gold),
-      var(--gold-2)
     );
-  transition: width .7s cubic-bezier(.2,.8,.2,1);
-}
 
 
-/* MANUAL */
+  const target =
+    Number(
 
-.manual-row {
-  margin-top: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 15px;
-  border-radius: 15px;
-  background: var(--surface-2);
-}
+      $("targetLevel").value
 
-.switch-area {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-}
-
-.switch-area strong {
-  display: block;
-  font-size: 13px;
-}
-
-.switch-area small {
-  display: block;
-  color: var(--muted);
-  font-size: 10px;
-}
-
-.switch {
-  position: relative;
-  width: 46px;
-  height: 25px;
-  flex: 0 0 auto;
-}
-
-.switch input {
-  display: none;
-}
-
-.slider {
-  position: absolute;
-  inset: 0;
-  border-radius: 30px;
-  background: #30353e;
-  transition: .25s;
-}
-
-.slider::before {
-  content: "";
-  position: absolute;
-  width: 19px;
-  height: 19px;
-  right: 3px;
-  top: 3px;
-  border-radius: 50%;
-  background: white;
-  transition: .25s;
-}
-
-.switch input:checked + .slider {
-  background: var(--gold);
-}
-
-.switch input:checked + .slider::before {
-  transform: translateX(-21px);
-}
-
-.manual-input {
-  width: 280px;
-}
-
-
-/* OPERATION */
-
-.operation-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-
-.operation-option {
-  cursor: pointer;
-}
-
-.operation-option input {
-  display: none;
-}
-
-.operation-content {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 17px;
-  border: 1px solid var(--border);
-  border-radius: 15px;
-  background: var(--surface-2);
-  transition: .25s;
-}
-
-.operation-option input:checked + .operation-content {
-  border-color: var(--gold);
-  background: rgba(210,166,76,.09);
-  box-shadow:
-    0 0 0 1px rgba(210,166,76,.15),
-    0 12px 30px rgba(210,166,76,.06);
-  transform: translateY(-2px);
-}
-
-.operation-icon {
-  width: 38px;
-  height: 38px;
-  display: grid;
-  place-items: center;
-  border-radius: 11px;
-  background: rgba(210,166,76,.10);
-  color: var(--gold-2);
-  font-size: 20px;
-}
-
-.operation-content strong {
-  display: block;
-  font-size: 13px;
-}
-
-.operation-content small {
-  display: block;
-  margin-top: 2px;
-  color: var(--muted);
-  font-size: 9px;
-}
-
-
-/* VIP */
-
-.vip-card {
-  overflow: hidden;
-}
-
-.vip-current {
-  text-align: left;
-}
-
-.vip-current span {
-  display: block;
-  color: var(--muted);
-  font-size: 9px;
-}
-
-.vip-current strong {
-  color: var(--gold-2);
-  font-size: 22px;
-}
-
-.vip-grid {
-  display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  gap: 7px;
-}
-
-.vip-choice {
-  min-height: 46px;
-  border: 1px solid var(--border);
-  border-radius: 11px;
-  background: var(--surface-2);
-  color: var(--muted);
-  font-weight: 900;
-  position: relative;
-  overflow: hidden;
-  transition: .25s;
-}
-
-.vip-choice::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(
-      120deg,
-      transparent,
-      rgba(255,255,255,.12),
-      transparent
     );
-  transform: translateX(-100%);
-  transition: .5s;
-}
 
-.vip-choice:hover::after {
-  transform: translateX(100%);
-}
 
-.vip-choice:hover {
-  border-color: rgba(210,166,76,.5);
-  color: var(--text);
-  transform: translateY(-2px);
-}
+  const support =
+    Math.max(
 
-.vip-choice.active {
-  color: #111;
-  border-color: var(--gold-2);
-  background:
-    linear-gradient(
-      145deg,
-      var(--gold-2),
-      var(--gold)
+      0,
+
+      Number(
+
+        $("currentSupport").value
+
+      ) || 0
+
     );
-  box-shadow:
-    0 8px 25px rgba(210,166,76,.18);
-  transform: translateY(-3px);
+
+
+  const targetData =
+    getLevel(target);
+
+
+  if (!targetData) {
+
+    return 0;
+
+  }
+
+
+  /*
+    إذا كان الهدف أعلى من الحالي:
+    الناقص = إجمالي الهدف - الدعم الحالي.
+
+    إذا كان المستخدم أدخل دعماً
+    تراكمياً فعلياً في حسابه.
+  */
+
+  return Math.max(
+
+    0,
+
+    targetData.total - support
+
+  );
+
 }
 
-.price-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-top: 18px;
-  padding-top: 18px;
-  border-top: 1px solid var(--border);
-}
+
+/* =========================================================
+   MANUAL MISSING
+   ========================================================= */
+
+function getReachMissing() {
+
+  const manual =
+    $("manualToggle").checked;
 
 
-/* CALCULATE */
+  if (manual) {
 
-.calculate-section {
-  display: grid;
-  grid-template-columns: 1fr 220px;
-  gap: 12px;
-  margin: 22px 0;
-}
+    return Math.max(
 
-.calculate-button {
-  min-height: 63px;
-  border: 0;
-  border-radius: 17px;
-  padding: 0 22px;
-  color: #111;
-  background:
-    linear-gradient(
-      110deg,
-      var(--gold),
-      var(--gold-2)
+      0,
+
+      Number(
+
+        $("manualMissing").value
+
+      ) || 0
+
     );
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-weight: 900;
-  font-size: 16px;
-  box-shadow:
-    0 15px 40px rgba(210,166,76,.17);
-  transition: .25s;
-}
 
-.calculate-button:hover {
-  transform: translateY(-3px);
-  box-shadow:
-    0 20px 50px rgba(210,166,76,.23);
-}
+  }
 
-.calculate-button strong {
-  font-size: 25px;
-}
 
-.save-button {
-  min-height: 63px;
-  border: 1px solid var(--border);
-  border-radius: 17px;
-  background: var(--surface);
-  color: var(--text);
-  font-weight: 800;
+  return calculateAutomaticReachMissing();
+
 }
 
 
-/* RESULTS */
+/* =========================================================
+   MAINTENANCE
+   ========================================================= */
 
-.result-header {
-  margin-top: 25px;
-  margin-bottom: 13px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+function getMaintainMissing() {
 
-.result-header h2 {
-  margin: 4px 0 0;
-  font-size: 24px;
-}
+  const target =
+    Number(
 
-.result-vip {
-  text-align: center;
-  padding: 10px 18px;
-  border: 1px solid rgba(210,166,76,.28);
-  border-radius: 14px;
-  background: rgba(210,166,76,.06);
-}
+      $("targetLevel").value
 
-.result-vip span {
-  display: block;
-  color: var(--muted);
-  font-size: 9px;
-}
-
-.result-vip strong {
-  color: var(--gold-2);
-  font-size: 22px;
-}
-
-
-/* MAIN RESULT */
-
-.main-result {
-  position: relative;
-  overflow: hidden;
-  text-align: center;
-  padding: 35px 20px;
-  border-radius: 23px;
-  border: 1px solid rgba(210,166,76,.28);
-  background:
-    radial-gradient(
-      circle at center,
-      rgba(210,166,76,.13),
-      transparent 65%
-    ),
-    var(--surface);
-  box-shadow: var(--shadow);
-}
-
-.main-result::before,
-.main-result::after {
-  content: "";
-  position: absolute;
-  border-radius: 50%;
-  border: 1px solid rgba(210,166,76,.12);
-  pointer-events: none;
-}
-
-.main-result::before {
-  width: 280px;
-  height: 280px;
-  top: -190px;
-  right: -70px;
-}
-
-.main-result::after {
-  width: 220px;
-  height: 220px;
-  bottom: -160px;
-  left: -60px;
-}
-
-.main-result-label {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.main-result-number {
-  margin-top: 5px;
-  color: var(--gold-2);
-  font-size: clamp(38px, 8vw, 65px);
-  line-height: 1.1;
-  font-weight: 900;
-  letter-spacing: -2px;
-}
-
-.main-result-unit {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.route {
-  margin-top: 18px;
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  padding: 7px 13px;
-  border-radius: 99px;
-  background: var(--surface-2);
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.route strong {
-  color: var(--gold-2);
-}
-
-
-/* RESULT GRID */
-
-.result-grid {
-  margin-top: 13px;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 11px;
-}
-
-.result-card {
-  padding: 18px;
-  min-height: 125px;
-  border: 1px solid var(--border);
-  border-radius: 17px;
-  background: var(--surface);
-}
-
-.result-card span {
-  color: var(--muted);
-  font-size: 11px;
-}
-
-.result-card strong {
-  display: block;
-  margin-top: 9px;
-  font-size: 21px;
-  overflow-wrap: anywhere;
-}
-
-.result-card small {
-  display: block;
-  margin-top: 3px;
-  color: var(--muted);
-  font-size: 9px;
-}
-
-
-/* SECONDARY */
-
-.secondary-result {
-  margin-top: 13px;
-  padding: 18px;
-  border: 1px solid rgba(210,166,76,.18);
-  border-radius: 18px;
-  background: rgba(210,166,76,.035);
-}
-
-.secondary-title {
-  margin-bottom: 12px;
-  color: var(--gold-2);
-  font-weight: 900;
-}
-
-.secondary-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
-}
-
-.secondary-grid div {
-  padding: 10px;
-  border-radius: 11px;
-  background: var(--surface);
-}
-
-.secondary-grid span {
-  display: block;
-  color: var(--muted);
-  font-size: 9px;
-}
-
-.secondary-grid strong {
-  display: block;
-  margin-top: 3px;
-  font-size: 14px;
-}
-
-
-/* GRAND */
-
-.grand-result {
-  margin-top: 13px;
-  padding: 20px;
-  border-radius: 19px;
-  background:
-    linear-gradient(
-      120deg,
-      rgba(210,166,76,.11),
-      rgba(210,166,76,.025)
     );
-  border: 1px solid rgba(210,166,76,.25);
-}
-
-.grand-result > div:first-child span {
-  color: var(--muted);
-  font-size: 10px;
-}
-
-.grand-result > div:first-child strong {
-  display: block;
-  color: var(--gold-2);
-  font-size: 15px;
-}
-
-.grand-values {
-  margin-top: 13px;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 9px;
-}
-
-.grand-values div {
-  text-align: center;
-}
-
-.grand-values small {
-  display: block;
-  color: var(--muted);
-  font-size: 9px;
-}
-
-.grand-values strong {
-  font-size: 16px;
-}
 
 
-/* HISTORY */
+  const support =
+    Math.max(
 
-.history-card {
-  margin-top: 18px;
-}
+      0,
 
-.delete-all {
-  border: 0;
-  border-radius: 9px;
-  padding: 8px 11px;
-  color: var(--red);
-  background: rgba(255,101,116,.08);
-  font-size: 10px;
-  font-weight: 800;
-}
+      Number(
 
-.empty {
-  padding: 28px;
-  border: 1px dashed var(--border);
-  border-radius: 13px;
-  text-align: center;
-  color: var(--muted);
-  font-size: 12px;
-}
+        $("currentSupport").value
 
-.table-scroll {
-  overflow-x: auto;
-}
+      ) || 0
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 780px;
-}
-
-th,
-td {
-  padding: 11px;
-  text-align: right;
-  border-bottom: 1px solid var(--border);
-  white-space: nowrap;
-}
-
-th {
-  color: var(--muted);
-  font-size: 10px;
-}
-
-td {
-  font-size: 11px;
-}
-
-.delete-history {
-  border: 0;
-  background: rgba(255,101,116,.08);
-  color: var(--red);
-  border-radius: 7px;
-  padding: 5px 8px;
-}
+    );
 
 
-/* CONTACTS */
-
-.contacts-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 11px;
-}
-
-.contact-item {
-  padding: 15px;
-  border: 1px solid var(--border);
-  border-radius: 15px;
-  background: var(--surface-2);
-}
-
-.contact-item strong {
-  display: block;
-  font-size: 14px;
-}
-
-.contact-item span {
-  display: block;
-  color: var(--muted);
-  font-size: 10px;
-  margin-top: 3px;
-}
-
-.copy-btn {
-  margin-top: 7px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px 9px;
-  color: var(--text);
-  background: var(--surface);
-  font-size: 9px;
-}
+  const targetData =
+    getLevel(target);
 
 
-/* FOOTER */
+  if (!targetData) {
 
-footer {
-  padding: 30px 18px 45px;
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px 16px;
-  flex-wrap: wrap;
-  color: var(--muted);
-  font-size: 10px;
-}
+    return 0;
 
-footer strong {
-  color: var(--text);
-}
-
-footer a {
-  color: var(--gold-2);
-  text-decoration: none;
-}
-
-
-/* TOAST */
-
-.toast {
-  position: fixed;
-  left: 50%;
-  bottom: 22px;
-  z-index: 999;
-  transform: translate(-50%, 20px);
-  opacity: 0;
-  pointer-events: none;
-  padding: 10px 17px;
-  border-radius: 11px;
-  background: #1b1f27;
-  color: white;
-  font-size: 11px;
-  transition: .25s;
-  box-shadow: 0 10px 30px rgba(0,0,0,.3);
-}
-
-.toast.show {
-  opacity: 1;
-  transform: translate(-50%, 0);
-}
-
-
-/* RESPONSIVE */
-
-@media (max-width: 900px) {
-
-  .vip-grid {
-    grid-template-columns: repeat(5, 1fr);
   }
 
-  .result-grid {
-    grid-template-columns: repeat(2, 1fr);
+
+  return Math.max(
+
+    0,
+
+    targetData.keep - support
+
+  );
+
+}
+
+
+/* =========================================================
+   BLOCK CALCULATION
+   ========================================================= */
+
+function calculateBlock(missing) {
+
+  const vip =
+    selectedVip;
+
+
+  const throwPerMillion =
+    Math.max(
+
+      0,
+
+      Number(
+
+        $("throwPerMillion").value
+
+      ) || 0
+
+    );
+
+
+  const jodPerMillion =
+    Math.max(
+
+      0,
+
+      Number(
+
+        $("jodPerMillion").value
+
+      ) || 0
+
+    );
+
+
+  const usdPerMillion =
+    Math.max(
+
+      0,
+
+      Number(
+
+        $("usdPerMillion").value
+
+      ) || 0
+
+    );
+
+
+  /*
+    العميل يحتاج X دعم.
+
+    أنت تشحن X ÷ VIP.
+
+    مثال:
+    الناقص = 5,000,000
+    VIP = 5
+
+    الشحن عليك = 1,000,000
+  */
+
+  const charge =
+    missing / vip;
+
+
+  /*
+    رمي الدعم:
+    كل مليون شحن = القيمة التي أدخلتها.
+  */
+
+  const throwSupport =
+    (charge / 1000000) *
+    throwPerMillion;
+
+
+  /*
+    التحويل النقدي:
+    كل مليون شحن له سعر مستقل.
+  */
+
+  const jod =
+    (charge / 1000000) *
+    jodPerMillion;
+
+
+  const usd =
+    (charge / 1000000) *
+    usdPerMillion;
+
+
+  return {
+
+    missing,
+
+    charge,
+
+    throwSupport,
+
+    jod,
+
+    usd
+
+  };
+
+}
+
+
+/* =========================================================
+   MAIN CALCULATION
+   ========================================================= */
+
+let lastResult = null;
+
+
+function calculate() {
+
+  const id =
+    customerId();
+
+
+  if (!id) {
+
+    toast(
+      "أدخل ID الحساب أولاً"
+    );
+
+    $("customerId").focus();
+
+    return;
+
   }
 
-  .secondary-grid,
-  .grand-values {
-    grid-template-columns: repeat(3, 1fr);
+
+  const current =
+    Number(
+
+      $("currentLevel").value
+
+    );
+
+
+  const target =
+    Number(
+
+      $("targetLevel").value
+
+    );
+
+
+  const operation =
+    document.querySelector(
+
+      'input[name="operation"]:checked'
+
+    ).value;
+
+
+  /*
+    الوصول
+  */
+
+  const reachMissing =
+    getReachMissing();
+
+
+  /*
+    التثبيت
+  */
+
+  const maintainMissing =
+    getMaintainMissing();
+
+
+  const reach =
+    calculateBlock(
+
+      reachMissing
+
+    );
+
+
+  const maintain =
+    calculateBlock(
+
+      maintainMissing
+
+    );
+
+
+  /*
+    الإجمالي
+  */
+
+  const grand = {
+
+    missing:
+
+      reach.missing +
+
+      maintain.missing,
+
+
+    charge:
+
+      reach.charge +
+
+      maintain.charge,
+
+
+    throwSupport:
+
+      reach.throwSupport +
+
+      maintain.throwSupport,
+
+
+    jod:
+
+      reach.jod +
+
+      maintain.jod,
+
+
+    usd:
+
+      reach.usd +
+
+      maintain.usd
+
+  };
+
+
+  lastResult = {
+
+    id,
+
+    current,
+
+    target,
+
+    operation,
+
+    vip: selectedVip,
+
+    reach,
+
+    maintain,
+
+    grand,
+
+    currentSupport:
+
+      Number(
+
+        $("currentSupport").value
+
+      ) || 0,
+
+    date:
+
+      new Date().toISOString(),
+
+    note:
+
+      ""
+
+  };
+
+
+  renderResult(lastResult);
+
+}
+
+
+/* =========================================================
+   RENDER RESULT
+   ========================================================= */
+
+function renderResult(result) {
+
+  $("results")
+
+    .classList
+
+    .remove("hidden");
+
+
+  $("resultVip").textContent =
+    `×${result.vip}`;
+
+
+  $("resultCurrent").textContent =
+    `VIP ${result.current}`;
+
+
+  $("resultTarget").textContent =
+    `VIP ${result.target}`;
+
+
+  /*
+    نوع العملية
+  */
+
+  let mainBlock;
+
+
+  if (result.operation === "maintain") {
+
+    mainBlock =
+      result.maintain;
+
+  } else {
+
+    mainBlock =
+      result.reach;
+
   }
 
-  .contacts-grid {
-    grid-template-columns: repeat(2, 1fr);
+
+  /*
+    إذا اختار الوصول + التثبيت،
+    نعرض الإجمالي كرقم رئيسي.
+  */
+
+  if (result.operation === "both") {
+
+    mainBlock =
+      result.grand;
+
+  }
+
+
+  $("mainMissing").textContent =
+    numberFormat(
+
+      mainBlock.missing,
+
+      2
+
+    );
+
+
+  $("resultCharge").textContent =
+    numberFormat(
+
+      mainBlock.charge,
+
+      2
+
+    );
+
+
+  $("resultThrow").textContent =
+    numberFormat(
+
+      mainBlock.throwSupport,
+
+      2
+
+    );
+
+
+  $("resultJod").textContent =
+    `${numberFormat(
+
+      mainBlock.jod,
+
+      2
+
+    )} د.أ`;
+
+
+  $("resultUsd").textContent =
+    `${numberFormat(
+
+      mainBlock.usd,
+
+      2
+
+    )} $`;
+
+
+  /*
+    التثبيت التفصيلي يظهر
+    فقط عند الوصول + التثبيت.
+  */
+
+  if (
+
+    result.operation === "both"
+
+  ) {
+
+    $("secondaryResult")
+
+      .classList
+
+      .remove("hidden");
+
+
+    $("maintainMissingResult")
+
+      .textContent =
+
+      numberFormat(
+
+        result.maintain.missing,
+
+        2
+
+      );
+
+
+    $("maintainChargeResult")
+
+      .textContent =
+
+      numberFormat(
+
+        result.maintain.charge,
+
+        2
+
+      );
+
+
+    $("maintainThrowResult")
+
+      .textContent =
+
+      numberFormat(
+
+        result.maintain.throwSupport,
+
+        2
+
+      );
+
+
+    $("maintainJodResult")
+
+      .textContent =
+
+      numberFormat(
+
+        result.maintain.jod,
+
+        2
+
+      );
+
+
+    $("maintainUsdResult")
+
+      .textContent =
+
+      numberFormat(
+
+        result.maintain.usd,
+
+        2
+
+      );
+
+  } else {
+
+    $("secondaryResult")
+
+      .classList
+
+      .add("hidden");
+
+  }
+
+
+  /*
+    الإجمالي دائماً موجود،
+    لكن عند الوصول أو التثبيت
+    يكون هو نفس العملية.
+  */
+
+  $("grandMissing").textContent =
+    numberFormat(
+
+      result.grand.missing,
+
+      2
+
+    );
+
+
+  $("grandCharge").textContent =
+    numberFormat(
+
+      result.grand.charge,
+
+      2
+
+    );
+
+
+  $("grandThrow").textContent =
+    numberFormat(
+
+      result.grand.throwSupport,
+
+      2
+
+    );
+
+
+  $("grandJod").textContent =
+    numberFormat(
+
+      result.grand.jod,
+
+      2
+
+    );
+
+
+  $("grandUsd").textContent =
+    numberFormat(
+
+      result.grand.usd,
+
+      2
+
+    );
+
+
+  $("results").scrollIntoView({
+
+    behavior: "smooth",
+
+    block: "start"
+
+  });
+
+}
+
+
+/* =========================================================
+   LEVEL DISPLAY
+   ========================================================= */
+
+function updateLevelDisplay() {
+
+  const current =
+    Number(
+
+      $("currentLevel").value
+
+    );
+
+
+  const target =
+    Number(
+
+      $("targetLevel").value
+
+    );
+
+
+  const support =
+    Math.max(
+
+      0,
+
+      Number(
+
+        $("currentSupport").value
+
+      ) || 0
+
+    );
+
+
+  const currentData =
+    getLevel(current);
+
+
+  const targetData =
+    getLevel(target);
+
+
+  $("currentSupportDisplay").textContent =
+    numberFormat(support);
+
+
+  $("currentLevelTotal").textContent =
+    `VIP ${current}: ${numberFormat(currentData.total)}`;
+
+
+  $("targetLevelTotal").textContent =
+    `VIP ${target}: ${numberFormat(targetData.total)}`;
+
+
+  /*
+    نسبة مرئية تقريبية
+    بين المستوى الحالي والهدف.
+  */
+
+  let percentage = 0;
+
+
+  if (
+
+    targetData &&
+
+    targetData.total > 0
+
+  ) {
+
+    percentage =
+      Math.min(
+
+        100,
+
+        (
+
+          support /
+
+          targetData.total
+
+        ) *
+
+        100
+
+      );
+
+  }
+
+
+  $("progressBar").style.width =
+    `${percentage}%`;
+
+}
+
+
+/* =========================================================
+   SAVE CUSTOMER
+   ========================================================= */
+
+function saveCustomerAndOperation() {
+
+  const id =
+    customerId();
+
+
+  if (!id) {
+
+    toast(
+      "أدخل ID الحساب أولاً"
+    );
+
+    return;
+
+  }
+
+
+  /*
+    إذا لم يتم الحساب،
+    نحسب تلقائياً.
+  */
+
+  if (!lastResult || lastResult.id !== id) {
+
+    calculate();
+
+  }
+
+
+  if (!lastResult) {
+
+    return;
+
+  }
+
+
+  const db =
+    getDatabase();
+
+
+  const old =
+    db.customers[id] || {
+
+      history: []
+
+    };
+
+
+  old.name =
+    $("customerName")
+
+      .value
+
+      .trim();
+
+
+  old.currentLevel =
+    Number(
+
+      $("currentLevel").value
+
+    );
+
+
+  old.targetLevel =
+    Number(
+
+      $("targetLevel").value
+
+    );
+
+
+  old.currentSupport =
+    Number(
+
+      $("currentSupport").value
+
+    ) || 0;
+
+
+  old.updatedAt =
+    new Date().toISOString();
+
+
+  old.history =
+    old.history || [];
+
+
+  old.history.unshift({
+
+    id:
+      generateId(),
+
+    date:
+      new Date().toLocaleString(
+
+        "ar-EG"
+
+      ),
+
+    current:
+      lastResult.current,
+
+    target:
+      lastResult.target,
+
+    vip:
+      lastResult.vip,
+
+    operation:
+      lastResult.operation,
+
+    missing:
+      lastResult.grand.missing,
+
+    charge:
+      lastResult.grand.charge,
+
+    throwSupport:
+      lastResult.grand.throwSupport,
+
+    jod:
+      lastResult.grand.jod,
+
+    usd:
+      lastResult.grand.usd
+
+  });
+
+
+  /*
+    آخر 100 عملية فقط.
+  */
+
+  old.history =
+    old.history.slice(
+
+      0,
+
+      100
+
+    );
+
+
+  db.customers[id] =
+    old;
+
+
+  saveDatabase(db);
+
+
+  loadCustomer(id);
+
+
+  toast(
+    "تم حفظ الحساب والعملية"
+  );
+
+}
+
+
+/* =========================================================
+   HISTORY
+   ========================================================= */
+
+function renderHistory(id) {
+
+  const db =
+    getDatabase();
+
+
+  const customer =
+    db.customers[id];
+
+
+  if (
+
+    !id ||
+
+    !customer ||
+
+    !customer.history ||
+
+    customer.history.length === 0
+
+  ) {
+
+    $("historyEmpty").textContent =
+
+      id
+
+        ? "لا توجد عمليات محفوظة لهذا الحساب."
+
+        : "أدخل ID العميل لعرض السجل.";
+
+
+    $("historyEmpty")
+
+      .classList
+
+      .remove("hidden");
+
+
+    $("historyTableWrap")
+
+      .classList
+
+      .add("hidden");
+
+
+    return;
+
+  }
+
+
+  $("historyEmpty")
+
+    .classList
+
+    .add("hidden");
+
+
+  $("historyTableWrap")
+
+    .classList
+
+    .remove("hidden");
+
+
+  $("historyBody").innerHTML =
+
+    customer.history.map(
+
+      item => `
+
+        <tr>
+
+          <td>
+            ${escapeHtml(item.date)}
+          </td>
+
+          <td>
+            VIP ${item.current}
+          </td>
+
+          <td>
+            VIP ${item.target}
+          </td>
+
+          <td>
+            ×${item.vip}
+          </td>
+
+          <td>
+            ${numberFormat(item.missing, 2)}
+          </td>
+
+          <td>
+            ${numberFormat(item.charge, 2)}
+          </td>
+
+          <td>
+            ${numberFormat(item.jod, 2)}
+          </td>
+
+          <td>
+            ${numberFormat(item.usd, 2)}
+          </td>
+
+          <td>
+
+            <button
+              class="delete-history"
+              data-id="${item.id}">
+
+              حذف
+
+            </button>
+
+          </td>
+
+        </tr>
+
+      `
+
+    ).join("");
+
+
+  document
+
+    .querySelectorAll(
+
+      ".delete-history"
+
+    )
+
+    .forEach(button => {
+
+      button.addEventListener(
+
+        "click",
+
+        () => {
+
+          deleteHistory(
+
+            id,
+
+            button.dataset.id
+
+          );
+
+        }
+
+      );
+
+    });
+
+}
+
+
+/* =========================================================
+   DELETE HISTORY
+   ========================================================= */
+
+function deleteHistory(
+
+  customer,
+
+  operationId
+
+) {
+
+  const db =
+    getDatabase();
+
+
+  if (!db.customers[customer]) {
+
+    return;
+
+  }
+
+
+  db.customers[customer].history =
+
+    db.customers[customer]
+
+      .history
+
+      .filter(
+
+        item =>
+
+          item.id !== operationId
+
+      );
+
+
+  saveDatabase(db);
+
+
+  renderHistory(customer);
+
+
+  toast(
+    "تم حذف العملية"
+  );
+
+}
+
+
+/* =========================================================
+   CLEAR HISTORY
+   ========================================================= */
+
+function clearHistory() {
+
+  const id =
+    customerId();
+
+
+  if (!id) {
+
+    toast(
+      "أدخل ID الحساب أولاً"
+    );
+
+    return;
+
+  }
+
+
+  const db =
+    getDatabase();
+
+
+  if (!db.customers[id]) {
+
+    toast(
+      "لا يوجد سجل لهذا الحساب"
+    );
+
+    return;
+
+  }
+
+
+  if (
+
+    !confirm(
+
+      `هل تريد حذف جميع عمليات الحساب ${id}؟`
+
+    )
+
+  ) {
+
+    return;
+
+  }
+
+
+  db.customers[id].history = [];
+
+
+  saveDatabase(db);
+
+
+  renderHistory(id);
+
+
+  toast(
+    "تم مسح سجل الحساب"
+  );
+
+}
+
+
+/* =========================================================
+   THEME
+   ========================================================= */
+
+function initializeTheme() {
+
+  const theme =
+    localStorage.getItem(
+
+      THEME_KEY
+
+    );
+
+
+  if (theme === "light") {
+
+    document.body.classList.add(
+      "light"
+    );
+
+  }
+
+
+  updateThemeButton();
+
+}
+
+
+function updateThemeButton() {
+
+  $("themeBtn").textContent =
+
+    document.body.classList.contains(
+
+      "light"
+
+    )
+
+      ? "☾"
+
+      : "☀";
+
+}
+
+
+function toggleTheme() {
+
+  document.body.classList.toggle(
+    "light"
+  );
+
+
+  localStorage.setItem(
+
+    THEME_KEY,
+
+    document.body.classList.contains(
+
+      "light"
+
+    )
+
+      ? "light"
+
+      : "dark"
+
+  );
+
+
+  updateThemeButton();
+
+}
+
+
+/* =========================================================
+   COPY
+   ========================================================= */
+
+async function copyText(text) {
+
+  try {
+
+    await navigator.clipboard.writeText(
+      text
+    );
+
+    toast("تم النسخ");
+
+  } catch {
+
+    const area =
+      document.createElement("textarea");
+
+    area.value = text;
+
+    document.body.appendChild(area);
+
+    area.select();
+
+    document.execCommand("copy");
+
+    area.remove();
+
+    toast("تم النسخ");
+
   }
 
 }
 
-@media (max-width: 650px) {
 
-  .topbar {
-    height: 68px;
-  }
+/* =========================================================
+   UTILITIES
+   ========================================================= */
 
-  .container {
-    width: min(100% - 18px, 1120px);
-    margin-top: 18px;
-  }
+function generateId() {
 
-  .hero {
-    padding: 25px 20px;
-    min-height: 245px;
-  }
+  return (
 
-  .vip-orb {
-    width: 90px;
-    height: 90px;
-    flex-basis: 90px;
-  }
+    Date.now().toString(36) +
 
-  .vip-orb strong {
-    font-size: 23px;
-  }
+    Math.random()
 
-  .vip-orb span {
-    font-size: 9px;
-  }
+      .toString(36)
 
-  .card {
-    padding: 17px;
-    border-radius: 17px;
-  }
+      .slice(2)
 
-  .form-grid.two,
-  .operation-grid,
-  .price-grid,
-  .contacts-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .level-selector {
-    grid-template-columns: 1fr;
-  }
-
-  .level-arrow {
-    margin: auto;
-    transform: rotate(-90deg);
-  }
-
-  .manual-row {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .manual-input {
-    width: 100%;
-  }
-
-  .calculate-section {
-    grid-template-columns: 1fr;
-  }
-
-  .result-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .secondary-grid,
-  .grand-values,
-  .customer-info {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .section-title {
-    align-items: flex-start;
-  }
-
-  .section-title > div:first-child {
-    align-items: flex-start;
-  }
+  );
 
 }
 
-@media (max-width: 420px) {
 
-  .result-grid,
-  .secondary-grid,
-  .grand-values,
-  .customer-info {
-    grid-template-columns: 1fr;
+function escapeHtml(value) {
+
+  return String(value ?? "")
+
+    .replace(
+
+      /[&<>"']/g,
+
+      character => ({
+
+        "&": "&amp;",
+
+        "<": "&lt;",
+
+        ">": "&gt;",
+
+        '"': "&quot;",
+
+        "'": "&#039;"
+
+      })[character]
+
+    );
+
+}
+
+
+function toast(message) {
+
+  const element =
+    $("toast");
+
+
+  element.textContent =
+    message;
+
+
+  element.classList.add(
+    "show"
+  );
+
+
+  clearTimeout(
+    window.toastTimer
+  );
+
+
+  window.toastTimer =
+
+    setTimeout(
+
+      () => {
+
+        element.classList.remove(
+          "show"
+        );
+
+      },
+
+      1800
+
+    );
+
+}
+
+
+/* =========================================================
+   EVENT LISTENERS
+   ========================================================= */
+
+document.addEventListener(
+
+  "DOMContentLoaded",
+
+  () => {
+
+    createVipInput();
+
+    initializeLevels();
+
+    initializeVipButtons();
+
+    loadSettings();
+
+    initializeTheme();
+
+
+    /*
+      VIP
+    */
+
+    document
+
+      .querySelectorAll(
+
+        ".vip-choice"
+
+      )
+
+      .forEach(button => {
+
+        button.addEventListener(
+
+          "click",
+
+          () => {
+
+            setVip(
+
+              Number(
+
+                button.dataset.vip
+
+              )
+
+            );
+
+            saveSettings();
+
+          }
+
+        );
+
+      });
+
+
+    /*
+      العميل
+    */
+
+    $("customerId")
+
+      .addEventListener(
+
+        "input",
+
+        event => {
+
+          loadCustomer(
+
+            event.target.value.trim()
+
+          );
+
+        }
+
+      );
+
+
+    /*
+      المستويات
+    */
+
+    $("currentLevel")
+
+      .addEventListener(
+
+        "change",
+
+        updateLevelDisplay
+
+      );
+
+
+    $("targetLevel")
+
+      .addEventListener(
+
+        "change",
+
+        updateLevelDisplay
+
+      );
+
+
+    $("currentSupport")
+
+      .addEventListener(
+
+        "input",
+
+        updateLevelDisplay
+
+      );
+
+
+    /*
+      الإدخال اليدوي
+    */
+
+    $("manualToggle")
+
+      .addEventListener(
+
+        "change",
+
+        () => {
+
+          $("manualMissingBox")
+
+            .classList
+
+            .toggle(
+
+              "hidden",
+
+              !$("manualToggle").checked
+
+            );
+
+        }
+
+      );
+
+
+    /*
+      الحساب
+    */
+
+    $("calculateBtn")
+
+      .addEventListener(
+
+        "click",
+
+        calculate
+
+      );
+
+
+    /*
+      الحفظ
+    */
+
+    $("saveCustomerBtn")
+
+      .addEventListener(
+
+        "click",
+
+        saveCustomerAndOperation
+
+      );
+
+
+    /*
+      الثيم
+    */
+
+    $("themeBtn")
+
+      .addEventListener(
+
+        "click",
+
+        toggleTheme
+
+      );
+
+
+    /*
+      مسح السجل
+    */
+
+    $("clearHistoryBtn")
+
+      .addEventListener(
+
+        "click",
+
+        clearHistory
+
+      );
+
+
+    /*
+      النسخ
+    */
+
+    document
+
+      .querySelectorAll(
+
+        ".copy-btn"
+
+      )
+
+      .forEach(button => {
+
+        button.addEventListener(
+
+          "click",
+
+          () => {
+
+            copyText(
+
+              button.dataset.copy
+
+            );
+
+          }
+
+        );
+
+      });
+
+
+    /*
+      تشغيل أولي
+    */
+
+    updateLevelDisplay();
+
   }
 
-  .vip-grid {
-    grid-template-columns: repeat(5, 1fr);
-  }
-
-  .vip-choice {
-    min-height: 42px;
-    font-size: 11px;
-  }
-
-  }
+);
