@@ -1874,11 +1874,11 @@ $("newBtn")
 
             clientId.value = "";
 
-            currentVip.value = "10";
+            currentVip.value = "1";
 
-            targetVip.value = "11";
+            targetVip.value = "2";
 
-            multiplier.value = "5";
+            multiplier.value = "4";
 
             supportRate.value =
                 "130000";
