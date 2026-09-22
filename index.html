@@ -3,85 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#08090c">
-    <title>مجلس القمة للشحن | حاسبة VIP</title>
+    <meta name="theme-color" content="#08090d">
+    <title>مجلس القمة للشحن</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<div class="page">
+<div class="app">
 
     <header class="header">
-        <div class="logo">VIP</div>
+        <div class="vip-logo">VIP</div>
+
         <div>
             <h1>مجلس القمة للشحن</h1>
             <p>حاسبة VIP والحساب الصافي</p>
         </div>
     </header>
 
+
     <main>
 
-        <!-- العميل -->
+        <!-- بيانات العميل -->
         <section class="card">
-            <div class="title">
-                <b>01</b>
+
+            <div class="section-title">
+                <span>01</span>
                 <div>
                     <h2>بيانات العميل</h2>
-                    <p>أدخل ID العميل لحفظ عملياته والرجوع إليها لاحقاً</p>
+                    <p>أدخل ID العميل لحفظ العملية والرجوع إليها لاحقاً</p>
                 </div>
             </div>
 
-            <div class="grid two">
-                <label>
-                    اسم العميل
-                    <input id="clientName" type="text" placeholder="اسم العميل">
-                </label>
+            <div class="grid-2">
 
-                <label>
-                    ID الحساب
-                    <input id="clientId" type="text" placeholder="مثال: 12345678">
-                </label>
+                <div class="field">
+                    <label>اسم العميل</label>
+                    <input
+                        id="clientName"
+                        type="text"
+                        placeholder="اسم العميل"
+                    >
+                </div>
+
+                <div class="field">
+                    <label>ID الحساب</label>
+                    <input
+                        id="clientId"
+                        type="text"
+                        placeholder="ID الحساب"
+                    >
+                </div>
+
             </div>
 
-            <div id="savedClient" class="saved-client hidden"></div>
+            <div id="clientStatus" class="status hidden"></div>
+
         </section>
 
 
-        <!-- إعداد VIP -->
+        <!-- إعداد الحسبة -->
         <section class="card">
-            <div class="title">
-                <b>02</b>
+
+            <div class="section-title">
+                <span>02</span>
                 <div>
-                    <h2>حساب VIP</h2>
-                    <p>القيم الفعلية للعميل فقط — بدون افتراض أنه في بداية المستوى</p>
+                    <h2>إعداد حسبة VIP</h2>
+                    <p>أدخل المتبقي الحقيقي للعميل</p>
                 </div>
             </div>
 
-            <div class="grid two">
 
-                <label>
-                    VIP الحالي
+            <div class="grid-3">
+
+                <div class="field">
+                    <label>المستوى الحالي</label>
                     <select id="currentVip"></select>
-                </label>
+                </div>
 
-                <label>
-                    VIP المطلوب
+                <div class="field">
+                    <label>المستوى المطلوب</label>
                     <select id="targetVip"></select>
-                </label>
+                </div>
 
-            </div>
-
-            <div class="grid two top-gap">
-
-                <label>
-                    المتبقي الفعلي للوصول إلى المستوى التالي
-                    <input id="firstRemaining" type="number" min="0" step="1" placeholder="مثال: 1300000">
-                    <small>هذه القيمة تخص هذا العميل فقط.</small>
-                </label>
-
-                <label>
-                    العرض
+                <div class="field">
+                    <label>العرض</label>
                     <select id="multiplier">
                         <option value="1">×1</option>
                         <option value="2">×2</option>
@@ -94,199 +100,406 @@
                         <option value="9">×9</option>
                         <option value="10">×10</option>
                     </select>
-                </label>
-
-            </div>
-
-            <div id="transitions" class="transitions"></div>
-        </section>
-
-
-        <!-- التثبيت -->
-        <section class="card">
-            <div class="title">
-                <b>03</b>
-                <div>
-                    <h2>التثبيت</h2>
-                    <p>اختياري ولا يدخل بالحساب إلا عند تفعيله</p>
                 </div>
-            </div>
-
-            <div class="lock-buttons">
-
-                <label class="lock-option selected" id="noLockLabel">
-                    <input type="radio" name="lock" value="no" checked>
-                    <strong>بدون تثبيت</strong>
-                    <span>الوصول للمستوى المطلوب فقط</span>
-                </label>
-
-                <label class="lock-option" id="yesLockLabel">
-                    <input type="radio" name="lock" value="yes">
-                    <strong>مع تثبيت</strong>
-                    <span>أضف قيمة التثبيت يدوياً</span>
-                </label>
 
             </div>
 
-            <div id="lockArea" class="hidden top-gap">
-                <label>
-                    قيمة التثبيت
-                    <input id="lockValue" type="number" min="0" step="1" value="0" placeholder="أدخل قيمة التثبيت">
+
+            <!-- نوع العملية -->
+            <div class="mode-box">
+
+                <label class="mode-option active" id="reachModeLabel">
+                    <input
+                        type="radio"
+                        name="mode"
+                        value="reach"
+                        checked
+                    >
+                    <strong>الوصول إلى مستوى</strong>
+                    <small>أدخل المتبقي الحقيقي للصعود</small>
                 </label>
+
+
+                <label class="mode-option" id="currentLockLabel">
+                    <input
+                        type="radio"
+                        name="mode"
+                        value="currentLock"
+                    >
+                    <strong>تثبيت المستوى الحالي فقط</strong>
+                    <small>أدخل المتبقي الحقيقي للتثبيت</small>
+                </label>
+
             </div>
+
+
+            <!-- الانتقال -->
+            <div id="transitionArea">
+
+                <div class="notice">
+                    <strong>مهم:</strong>
+                    القيم التي تدخلها هنا هي القيم الفعلية الخاصة بالعميل.
+                    لا يتم جمع إجمالي جدول VIP تلقائياً.
+                </div>
+
+                <div id="transitionList"></div>
+
+            </div>
+
+
+            <!-- تثبيت المستوى المطلوب -->
+            <div id="targetLockBox" class="lock-box hidden">
+
+                <div class="lock-header">
+                    <div>
+                        <strong>تثبيت المستوى المطلوب</strong>
+                        <small>
+                            عند تفعيل التثبيت يضاف مقدار التثبيت من جدول VIP.
+                        </small>
+                    </div>
+
+                    <label class="switch">
+                        <input id="enableTargetLock" type="checkbox">
+                        <span></span>
+                    </label>
+                </div>
+
+
+                <div id="targetLockInput" class="hidden">
+
+                    <div class="field">
+                        <label>
+                            قيمة التثبيت الفعلية
+                            <span class="optional">يمكن تعديلها يدوياً</span>
+                        </label>
+
+                        <input
+                            id="lockValue"
+                            type="number"
+                            min="0"
+                            step="1"
+                            placeholder="قيمة التثبيت"
+                        >
+
+                        <small id="lockReference"></small>
+                    </div>
+
+                </div>
+
+            </div>
+
         </section>
 
 
         <!-- الأسعار -->
         <section class="card">
-            <div class="title">
-                <b>04</b>
+
+            <div class="section-title">
+                <span>03</span>
+
                 <div>
-                    <h2>أسعار الحساب</h2>
-                    <p>كل الأسعار حرة ويمكنك تغييرها في أي وقت</p>
+                    <h2>إعداد الدعم والأسعار</h2>
+                    <p>جميع القيم قابلة للتعديل</p>
                 </div>
             </div>
 
-            <div class="grid three">
 
-                <label>
-                    دعم العميل لكل مليون
-                    <input id="supportRate" type="number" min="0" step="1" value="130000">
-                    <small>مثال: 130000 دعم لكل 1,000,000 شحن</small>
-                </label>
+            <div class="grid-3">
 
-                <label>
-                    سعر مليون الشحن — دينار
-                    <input id="jodRate" type="number" min="0" step="0.01" value="11">
-                </label>
+                <div class="field">
+                    <label>دعم كل مليون شحن</label>
 
-                <label>
-                    سعر مليون الشحن — دولار
-                    <input id="usdRate" type="number" min="0" step="0.01" value="15">
-                </label>
+                    <input
+                        id="supportRate"
+                        type="number"
+                        min="0"
+                        step="1"
+                        value="130000"
+                    >
+
+                    <small>
+                        مثال: 130000 دعم لكل 1,000,000 شحن فعلي
+                    </small>
+                </div>
+
+
+                <div class="field">
+                    <label>سعر المليون — دينار أردني</label>
+
+                    <input
+                        id="jodRate"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value="11"
+                    >
+                </div>
+
+
+                <div class="field">
+                    <label>سعر المليون — دولار</label>
+
+                    <input
+                        id="usdRate"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value="15"
+                    >
+                </div>
 
             </div>
+
         </section>
 
 
         <!-- النتيجة -->
         <section class="result-card">
 
-            <div class="result-head">
-                <span>النتيجة النهائية</span>
-                <strong id="resultVip">VIP 1 → VIP 2</strong>
-            </div>
+            <div class="result-title">
 
-            <div class="main-result">
-                <small>إجمالي الشحن المطلوب</small>
-                <strong id="finalCharge">0</strong>
-                <span>شحن</span>
-            </div>
-
-            <div class="results">
-
-                <div class="result">
-                    <small>الوصول بدون تثبيت</small>
-                    <strong id="reachResult">0</strong>
+                <div>
+                    <small>النتيجة</small>
+                    <h2 id="resultTitle">VIP 1 → VIP 2</h2>
                 </div>
 
-                <div class="result">
-                    <small>التثبيت</small>
-                    <strong id="lockResult">0</strong>
-                </div>
-
-                <div class="result important">
-                    <small>الإجمالي مع التثبيت</small>
-                    <strong id="totalResult">0</strong>
-                </div>
-
-                <div class="result">
-                    <small>الدعم المطلوب من العميل</small>
-                    <strong id="customerSupport">0</strong>
-                </div>
-
-                <div class="result">
-                    <small>كمية الشحن × العرض</small>
-                    <strong id="chargeToClient">0</strong>
-                </div>
-
-                <div class="result">
-                    <small>الدعم بعد الشحن</small>
-                    <strong id="remainingSupport">0</strong>
-                </div>
-
-                <div class="result money">
-                    <small>الإجمالي بالدينار الأردني</small>
-                    <strong id="jodResult">0.00 د.أ</strong>
-                </div>
-
-                <div class="result money">
-                    <small>الإجمالي بالدولار الأمريكي</small>
-                    <strong id="usdResult">0.00 $</strong>
+                <div class="multiplier-badge" id="resultMultiplier">
+                    ×5
                 </div>
 
             </div>
+
+
+            <div class="hero-result">
+
+                <small>الشحن الفعلي الذي سيشحنه الوكيل</small>
+
+                <strong id="actualCharge">
+                    0
+                </strong>
+
+                <span>كوينز</span>
+
+            </div>
+
+
+            <div class="result-grid">
+
+                <div class="result-box">
+
+                    <small>نقاط الوصول</small>
+
+                    <strong id="reachPoints">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="result-box">
+
+                    <small>نقاط التثبيت</small>
+
+                    <strong id="lockPoints">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="result-box highlight">
+
+                    <small>إجمالي نقاط VIP</small>
+
+                    <strong id="totalVipPoints">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="result-box support">
+
+                    <small>الدعم المطلوب</small>
+
+                    <strong id="supportNeeded">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="result-box">
+
+                    <small>سعر الشحن بالدينار</small>
+
+                    <strong id="jodTotal">
+                        0.00 د.أ
+                    </strong>
+
+                </div>
+
+
+                <div class="result-box">
+
+                    <small>سعر الشحن بالدولار</small>
+
+                    <strong id="usdTotal">
+                        0.00 $
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="formula">
+
+                <div>
+                    <span>نقاط VIP</span>
+                    <b id="formulaVip">0</b>
+                </div>
+
+                <i>÷</i>
+
+                <div>
+                    <span>العرض</span>
+                    <b id="formulaMultiplier">×5</b>
+                </div>
+
+                <i>=</i>
+
+                <div>
+                    <span>الشحن الفعلي</span>
+                    <b id="formulaCharge">0</b>
+                </div>
+
+            </div>
+
+
+            <div class="support-formula">
+
+                <span>الدعم</span>
+
+                <strong id="formulaSupport">
+                    0 ÷ 1,000,000 × 130,000 = 0
+                </strong>
+
+            </div>
+
         </section>
 
 
-        <!-- أزرار -->
+        <!-- الأزرار -->
         <div class="actions">
-            <button id="calculateBtn" class="primary">احسب الآن</button>
-            <button id="saveBtn" class="secondary">حفظ العملية</button>
-            <button id="newBtn" class="dark">عملية جديدة</button>
+
+            <button
+                id="calculateBtn"
+                class="btn primary"
+            >
+                احسب الآن
+            </button>
+
+            <button
+                id="saveBtn"
+                class="btn secondary"
+            >
+                حفظ العملية
+            </button>
+
+            <button
+                id="newBtn"
+                class="btn dark"
+            >
+                عملية جديدة
+            </button>
+
         </div>
 
 
         <!-- سجل العملاء -->
         <section class="card">
-            <div class="title">
-                <b>05</b>
+
+            <div class="section-title">
+
+                <span>04</span>
+
                 <div>
-                    <h2>سجل العملاء</h2>
-                    <p>محفوظ داخل المتصفح على هذا الجهاز</p>
+                    <h2>سجل العملاء والعمليات</h2>
+                    <p>
+                        البيانات محفوظة داخل المتصفح على هذا الجهاز
+                    </p>
                 </div>
+
             </div>
 
-            <div class="history-search">
-                <input id="historySearch" type="search" placeholder="ابحث بالاسم أو ID">
-                <button id="clearHistory">حذف الكل</button>
+
+            <div class="search-row">
+
+                <input
+                    id="historySearch"
+                    type="search"
+                    placeholder="ابحث باسم العميل أو ID..."
+                >
+
+                <button id="clearHistory">
+                    حذف الكل
+                </button>
+
             </div>
+
 
             <div id="history"></div>
+
         </section>
 
 
         <!-- جدول VIP -->
         <section class="card">
-            <div class="title">
-                <b>06</b>
+
+            <div class="section-title">
+
+                <span>05</span>
+
                 <div>
                     <h2>جدول VIP</h2>
-                    <p>جدول مرجعي فقط — لا يتم جمعه تلقائياً مع حساب العميل</p>
+                    <p>
+                        مرجع المستويات — لا يتم استخدام إجمالي الشحن تلقائياً
+                    </p>
                 </div>
+
             </div>
 
-            <div class="table-scroll">
+
+            <div class="table-wrap">
+
                 <table>
+
                     <thead>
-                    <tr>
-                        <th>VIP</th>
-                        <th>إجمالي الشحن</th>
-                        <th>XP للترقية</th>
-                        <th>XP للحفاظ</th>
-                    </tr>
+                        <tr>
+                            <th>المستوى</th>
+                            <th>إجمالي الشحن</th>
+                            <th>XP للترقية</th>
+                            <th>XP للحفاظ</th>
+                        </tr>
                     </thead>
+
                     <tbody id="vipTable"></tbody>
+
                 </table>
+
             </div>
+
         </section>
 
 
-        <!-- معلومات التواصل -->
+        <!-- معلومات النظام -->
         <section class="contact-card">
+
             <h2>نظام الشحن الوكيل</h2>
 
             <div class="contact-grid">
+
                 <div>
                     <span>الوكيل غليص</span>
                     <strong>14935693</strong>
@@ -306,25 +519,50 @@
                     <span>ID لورد</span>
                     <strong>12221042</strong>
                 </div>
+
             </div>
 
-            <div class="whatsapp">
-                <div>غليص <strong>+963938722013</strong></div>
-                <div>F90 <strong>+970568181910</strong></div>
-                <div>لورد <strong>+962775630834</strong></div>
+
+            <div class="phones">
+
+                <div>
+                    غليص
+                    <strong>+963938722013</strong>
+                </div>
+
+                <div>
+                    F90
+                    <strong>+970568181910</strong>
+                </div>
+
+                <div>
+                    لورد
+                    <strong>+962775630834</strong>
+                </div>
+
             </div>
+
         </section>
 
     </main>
 
 
     <footer>
-        <strong>تم تطوير هذا الموقع بواسطة F90 أف تسعين للخدمات الرقمية</strong>
-        <span>Instagram: f90.xd</span>
+
+        <strong>
+            تم تطوير هذا الموقع بواسطة F90 أف تسعين للخدمات الرقمية
+        </strong>
+
+        <span>
+            Instagram: f90.xd
+        </span>
+
     </footer>
 
 </div>
 
+
 <script src="script.js"></script>
+
 </body>
 </html>
