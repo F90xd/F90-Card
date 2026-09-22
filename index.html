@@ -1,388 +1,181 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <meta
-        name="theme-color"
-        content="#08090d"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#08090d">
     <title>مجلس القمة للشحن</title>
-
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
+    <link rel="stylesheet" href="style.css">
 </head>
-
 
 <body>
 
 <div class="app">
 
-    <!-- =====================================================
-         HEADER
-    ====================================================== -->
-
     <header class="header">
-
-        <div class="vip-logo">
-            VIP
-        </div>
+        <div class="vip-logo">VIP</div>
 
         <div class="header-text">
-
-            <div class="developer">
-                VIP CALCULATOR
-            </div>
-
-            <h1>
-                مجلس القمة للشحن
-            </h1>
-
-            <p>
-                حاسبة VIP وإدارة العملاء
-            </p>
-
+            <div class="developer">F90</div>
+            <h1>مجلس القمة للشحن</h1>
+            <p>موقع خاص لوكالة مجلس القمة الأردنية</p>
         </div>
 
-        <button
-            id="themeToggle"
-            class="theme-toggle"
-            type="button"
-        >
+        <button id="themeToggle" class="theme-toggle" title="الوضع الليلي والنهاري">
             ☾
         </button>
-
     </header>
 
 
     <main>
 
-
-        <!-- =================================================
-             CUSTOMER
-        ================================================== -->
+        <!-- ================= بيانات العميل ================= -->
 
         <section class="card">
 
             <div class="section-title">
-
-                <span>
-                    01
-                </span>
-
+                <span>01</span>
                 <div>
-
-                    <h2>
-                        بيانات العميل
-                    </h2>
-
-                    <p>
-                        أدخل بيانات العميل قبل الحساب
-                    </p>
-
+                    <h2>بيانات العميل</h2>
+                    <p>أدخل بيانات العميل لحفظ العملية والرجوع إليها لاحقاً</p>
                 </div>
-
             </div>
-
 
             <div class="grid-2">
 
                 <div class="field">
-
-                    <label for="clientName">
-                        اسم العميل
-                    </label>
-
-                    <input
-                        id="clientName"
-                        type="text"
-                        autocomplete="off"
-                        placeholder="اسم العميل"
-                    >
-
+                    <label>اسم العميل</label>
+                    <input id="clientName" type="text" placeholder="اسم العميل">
                 </div>
 
-
                 <div class="field">
-
-                    <label for="clientId">
-                        ID الحساب
-                    </label>
-
-                    <input
-                        id="clientId"
-                        type="text"
-                        inputmode="text"
-                        autocomplete="off"
-                        placeholder="أدخل ID الحساب"
-                    >
-
+                    <label>ID الحساب</label>
+                    <input id="clientId" type="text" placeholder="ID الحساب">
                 </div>
 
             </div>
 
-
-            <div
-                id="clientStatus"
-                class="status hidden"
-            ></div>
+            <div id="clientStatus" class="status hidden"></div>
 
         </section>
 
 
-
-        <!-- =================================================
-             VIP CALCULATOR SETTINGS
-        ================================================== -->
+        <!-- ================= حسبة VIP ================= -->
 
         <section class="card">
 
             <div class="section-title">
-
-                <span>
-                    02
-                </span>
+                <span>02</span>
 
                 <div>
-
-                    <h2>
-                        إعدادات VIP
-                    </h2>
-
-                    <p>
-                        حدد المستوى الحالي والمستوى المطلوب
-                    </p>
-
+                    <h2>حسبة VIP</h2>
+                    <p>أدخل قيمة الانتقال الأول فقط والباقي يحسب تلقائياً</p>
                 </div>
-
             </div>
 
 
             <div class="grid-3">
 
                 <div class="field">
-
-                    <label for="currentVip">
-                        المستوى الحالي
-                    </label>
-
+                    <label>المستوى الحالي</label>
                     <select id="currentVip"></select>
-
                 </div>
 
-
                 <div class="field">
-
-                    <label for="targetVip">
-                        المستوى المطلوب
-                    </label>
-
+                    <label>المستوى المطلوب</label>
                     <select id="targetVip"></select>
-
                 </div>
 
-
                 <div class="field">
-
-                    <label for="multiplier">
-                        معامل الشحن
-                    </label>
-
-                    <input
-                        id="multiplier"
-                        type="text"
-                        inputmode="decimal"
-                        autocomplete="off"
-                        value="5"
-                        placeholder="مثال: 5"
-                    >
-
+                    <label>العرض</label>
+                    <select id="multiplier">
+                        <option value="1">×1</option>
+                        <option value="2">×2</option>
+                        <option value="3">×3</option>
+                        <option value="4">×4</option>
+                        <option value="5" selected>×5</option>
+                        <option value="6">×6</option>
+                        <option value="7">×7</option>
+                        <option value="8">×8</option>
+                        <option value="9">×9</option>
+                        <option value="10">×10</option>
+                    </select>
                 </div>
 
             </div>
 
+
+            <!-- نوع العملية -->
 
             <div class="mode-box">
 
-                <label
-                    class="mode-option active"
-                    id="reachModeLabel"
-                >
-
-                    <input
-                        type="radio"
-                        name="mode"
-                        value="reach"
-                        checked
-                    >
-
-                    <strong>
-                        الوصول إلى VIP
-                    </strong>
-
-                    <small>
-                        حساب قيمة الوصول للمستوى المطلوب
-                    </small>
-
+                <label class="mode-option active" id="reachModeLabel">
+                    <input type="radio" name="mode" value="reach" checked>
+                    <strong>الوصول إلى مستوى</strong>
+                    <small>أدخل قيمة المستوى الأول فقط والباقي تلقائي</small>
                 </label>
 
 
-                <label
-                    class="mode-option"
-                    id="currentLockLabel"
-                >
-
-                    <input
-                        type="radio"
-                        name="mode"
-                        value="currentLock"
-                    >
-
-                    <strong>
-                        تثبيت المستوى الحالي
-                    </strong>
-
-                    <small>
-                        حساب قيمة تثبيت VIP الحالي
-                    </small>
-
+                <label class="mode-option" id="currentLockLabel">
+                    <input type="radio" name="mode" value="currentLock">
+                    <strong>تثبيت المستوى الحالي فقط</strong>
+                    <small>قيمة التثبيت تؤخذ تلقائياً من جدول VIP</small>
                 </label>
 
             </div>
 
 
-            <div class="notice">
+            <!-- الانتقالات -->
 
-                <strong>
-                    ملاحظة:
-                </strong>
+            <div id="transitionArea">
 
-                عند الوصول إلى مستوى أعلى، يتم إدخال القيمة
-                الفعلية للمستوى الأول فقط، بينما بقية المستويات
-                تحسب تلقائيًا من جدول VIP.
-
-            </div>
-
-        </section>
-
-
-
-        <!-- =================================================
-             TRANSITIONS
-        ================================================== -->
-
-        <section
-            id="transitionArea"
-            class="card"
-        >
-
-            <div class="section-title">
-
-                <span>
-                    03
-                </span>
-
-                <div>
-
-                    <h2>
-                        مراحل VIP
-                    </h2>
-
-                    <p>
-                        القيمة اليدوية والحساب التلقائي
-                    </p>
-
+                <div class="notice">
+                    <strong>طريقة الحسبة:</strong>
+                    أدخل قيمة الانتقال الأول فقط. مثال: VIP 2 → VIP 3.
+                    جميع المستويات التالية يتم حسابها تلقائياً من جدول VIP.
                 </div>
 
+                <div id="transitionList"></div>
+
             </div>
 
 
-            <div id="transitionList"></div>
+            <!-- التثبيت -->
 
-
-            <div
-                id="targetLockBox"
-                class="lock-box hidden"
-            >
+            <div id="targetLockBox" class="lock-box hidden">
 
                 <div class="lock-header">
 
                     <div>
-
-                        <strong>
-                            إضافة تثبيت المستوى المطلوب
-                        </strong>
-
+                        <strong>تثبيت المستوى المطلوب</strong>
                         <small>
-                            يتم أخذ قيمة التثبيت تلقائيًا من جدول VIP
+                            قيمة التثبيت يتم جلبها تلقائياً من جدول VIP.
                         </small>
-
                     </div>
 
-
                     <label class="switch">
-
-                        <input
-                            id="enableTargetLock"
-                            type="checkbox"
-                        >
-
+                        <input id="enableTargetLock" type="checkbox">
                         <span></span>
-
                     </label>
 
                 </div>
 
 
-                <div class="auto-value">
+                <div id="targetLockInput" class="hidden">
 
-                    <div>
+                    <div class="auto-value">
 
-                        <span>
-                            قيمة التثبيت
-                        </span>
+                        <div>
+                            <span>قيمة التثبيت التلقائية</span>
+                            <strong id="autoLockValue">0</strong>
+                        </div>
 
-                        <strong id="autoLockValue">
-                            0
-                        </strong>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            المستوى
-                        </span>
-
-                        <strong id="autoLockLevel">
-                            VIP 0
-                        </strong>
+                        <div>
+                            <span>VIP</span>
+                            <strong id="autoLockLevel">0</strong>
+                        </div>
 
                     </div>
-
-                </div>
-
-
-                <div class="field">
-
-                    <input
-                        id="targetLockInput"
-                        class="hidden"
-                        type="text"
-                        inputmode="numeric"
-                        autocomplete="off"
-                        placeholder="قيمة التثبيت اليدوية - اختياري"
-                    >
 
                 </div>
 
@@ -391,64 +184,47 @@
         </section>
 
 
-
-        <!-- =================================================
-             RATES
-        ================================================== -->
+        <!-- ================= الأسعار ================= -->
 
         <section class="card">
 
             <div class="section-title">
-
-                <span>
-                    04
-                </span>
+                <span>03</span>
 
                 <div>
-
-                    <h2>
-                        أسعار الدعم
-                    </h2>
-
-                    <p>
-                        يمكن تعديل القيم في أي وقت
-                    </p>
-
+                    <h2>إعداد الدعم والأسعار</h2>
+                    <p>يمكن تعديل القيم حسب نظام الوكالة</p>
                 </div>
-
             </div>
 
 
             <div class="grid-3">
 
                 <div class="field">
-
-                    <label for="supportRate">
-                        الدعم لكل مليون
-                    </label>
+                    <label>دعم كل مليون شحن</label>
 
                     <input
                         id="supportRate"
-                        type="text"
-                        inputmode="decimal"
-                        autocomplete="off"
+                        type="number"
+                        min="0"
+                        step="1"
                         value="130000"
                     >
 
+                    <small>
+                        كل 130,000 دعم = 11 دينار = 15 دولار
+                    </small>
                 </div>
 
 
                 <div class="field">
-
-                    <label for="jodRate">
-                        الدينار لكل وحدة
-                    </label>
+                    <label>سعر 130 ألف دعم — دينار</label>
 
                     <input
                         id="jodRate"
-                        type="text"
-                        inputmode="decimal"
-                        autocomplete="off"
+                        type="number"
+                        min="0"
+                        step="0.01"
                         value="11"
                     >
 
@@ -456,16 +232,13 @@
 
 
                 <div class="field">
-
-                    <label for="usdRate">
-                        الدولار لكل وحدة
-                    </label>
+                    <label>سعر 130 ألف دعم — دولار</label>
 
                     <input
                         id="usdRate"
-                        type="text"
-                        inputmode="decimal"
-                        autocomplete="off"
+                        type="number"
+                        min="0"
+                        step="0.01"
                         value="15"
                     >
 
@@ -476,32 +249,18 @@
         </section>
 
 
-
-        <!-- =================================================
-             RESULT
-        ================================================== -->
+        <!-- ================= النتيجة ================= -->
 
         <section class="result-card">
 
             <div class="result-title">
 
                 <div>
-
-                    <small>
-                        النتيجة
-                    </small>
-
-                    <h2 id="resultTitle">
-                        VIP 10 → VIP 11
-                    </h2>
-
+                    <small>النتيجة النهائية</small>
+                    <h2 id="resultTitle">VIP 10 → VIP 11</h2>
                 </div>
 
-
-                <div
-                    id="resultMultiplier"
-                    class="multiplier-badge"
-                >
+                <div class="multiplier-badge" id="resultMultiplier">
                     ×5
                 </div>
 
@@ -510,17 +269,11 @@
 
             <div class="hero-result">
 
-                <small>
-                    الشحن المطلوب
-                </small>
+                <small>إجمالي شحن الوكيل</small>
 
-                <strong id="actualCharge">
-                    0
-                </strong>
+                <strong id="actualCharge">0</strong>
 
-                <span>
-                    كوينز
-                </span>
+                <span>كوينز</span>
 
             </div>
 
@@ -528,80 +281,38 @@
             <div class="result-grid">
 
                 <div class="result-box">
-
-                    <small>
-                        قيمة الوصول
-                    </small>
-
-                    <strong id="reachPoints">
-                        0
-                    </strong>
-
+                    <small>نقاط الوصول</small>
+                    <strong id="reachPoints">0</strong>
                 </div>
 
 
                 <div class="result-box">
-
-                    <small>
-                        قيمة التثبيت
-                    </small>
-
-                    <strong id="lockPoints">
-                        0
-                    </strong>
-
+                    <small>نقاط التثبيت</small>
+                    <strong id="lockPoints">0</strong>
                 </div>
 
 
                 <div class="result-box highlight">
-
-                    <small>
-                        إجمالي VIP
-                    </small>
-
-                    <strong id="totalVipPoints">
-                        0
-                    </strong>
-
+                    <small>إجمالي الوصول + التثبيت</small>
+                    <strong id="totalVipPoints">0</strong>
                 </div>
 
 
                 <div class="result-box support">
-
-                    <small>
-                        الدعم المطلوب
-                    </small>
-
-                    <strong id="supportNeeded">
-                        0
-                    </strong>
-
+                    <small>إجمالي الدعم المطلوب</small>
+                    <strong id="supportNeeded">0</strong>
                 </div>
 
 
                 <div class="result-box">
-
-                    <small>
-                        المبلغ بالدينار
-                    </small>
-
-                    <strong id="jodTotal">
-                        0.00 د.أ
-                    </strong>
-
+                    <small>سعر الدعم المستخدم — دينار</small>
+                    <strong id="jodTotal">0.00 د.أ</strong>
                 </div>
 
 
                 <div class="result-box">
-
-                    <small>
-                        المبلغ بالدولار
-                    </small>
-
-                    <strong id="usdTotal">
-                        0.00 $
-                    </strong>
-
+                    <small>سعر الدعم المستخدم — دولار</small>
+                    <strong id="usdTotal">0.00 $</strong>
                 </div>
 
             </div>
@@ -610,57 +321,29 @@
             <div class="formula">
 
                 <div>
-
-                    <span>
-                        الوصول
-                    </span>
-
-                    <b id="formulaReach">
-                        0
-                    </b>
-
+                    <span>نقاط الوصول</span>
+                    <b id="formulaReach">0</b>
                 </div>
 
                 <i>+</i>
 
                 <div>
-
-                    <span>
-                        التثبيت
-                    </span>
-
-                    <b id="formulaLock">
-                        0
-                    </b>
-
+                    <span>التثبيت</span>
+                    <b id="formulaLock">0</b>
                 </div>
 
                 <i>=</i>
 
                 <div>
-
-                    <span>
-                        الإجمالي
-                    </span>
-
-                    <b id="formulaVip">
-                        0
-                    </b>
-
+                    <span>الإجمالي</span>
+                    <b id="formulaVip">0</b>
                 </div>
 
                 <i>÷</i>
 
                 <div>
-
-                    <span>
-                        المعامل
-                    </span>
-
-                    <b id="formulaMultiplier">
-                        ×5
-                    </b>
-
+                    <span>العرض</span>
+                    <b id="formulaMultiplier">×5</b>
                 </div>
 
             </div>
@@ -668,9 +351,7 @@
 
             <div class="support-formula">
 
-                <span>
-                    معادلة الدعم:
-                </span>
+                <span>حسبة الدعم:</span>
 
                 <strong id="formulaSupport">
                     0 ÷ 1,000,000 × 130,000 = 0
@@ -681,65 +362,36 @@
         </section>
 
 
-
-        <!-- =================================================
-             ACTIONS
-        ================================================== -->
+        <!-- ================= أزرار ================= -->
 
         <div class="actions">
 
-            <button
-                id="calculateBtn"
-                class="btn primary"
-                type="button"
-            >
-                حساب النتيجة
+            <button id="calculateBtn" class="btn primary">
+                احسب الآن
             </button>
 
-
-            <button
-                id="saveBtn"
-                class="btn secondary"
-                type="button"
-            >
+            <button id="saveBtn" class="btn secondary">
                 حفظ العملية
             </button>
 
-
-            <button
-                id="newBtn"
-                class="btn dark"
-                type="button"
-            >
+            <button id="newBtn" class="btn dark">
                 عملية جديدة
             </button>
 
         </div>
 
 
-
-        <!-- =================================================
-             HISTORY
-        ================================================== -->
+        <!-- ================= سجل العملاء ================= -->
 
         <section class="card">
 
             <div class="section-title">
 
-                <span>
-                    05
-                </span>
+                <span>04</span>
 
                 <div>
-
-                    <h2>
-                        سجل العملاء
-                    </h2>
-
-                    <p>
-                        العمليات المحفوظة على الجهاز
-                    </p>
-
+                    <h2>سجل العملاء والعمليات</h2>
+                    <p>العمليات محفوظة داخل المتصفح على هذا الجهاز</p>
                 </div>
 
             </div>
@@ -749,17 +401,12 @@
 
                 <input
                     id="historySearch"
-                    type="text"
-                    autocomplete="off"
-                    placeholder="ابحث بالاسم أو ID..."
+                    type="search"
+                    placeholder="ابحث باسم العميل أو ID..."
                 >
 
-
-                <button
-                    id="clearHistory"
-                    type="button"
-                >
-                    حذف السجل
+                <button id="clearHistory">
+                    حذف الكل
                 </button>
 
             </div>
@@ -770,29 +417,17 @@
         </section>
 
 
-
-        <!-- =================================================
-             VIP TABLE
-        ================================================== -->
+        <!-- ================= جدول VIP ================= -->
 
         <section class="card">
 
             <div class="section-title">
 
-                <span>
-                    VIP
-                </span>
+                <span>05</span>
 
                 <div>
-
-                    <h2>
-                        جدول VIP
-                    </h2>
-
-                    <p>
-                        مستويات الترقية وقيمة التثبيت
-                    </p>
-
+                    <h2>جدول VIP</h2>
+                    <p>مرجع المستويات وقيم الترقية والتثبيت</p>
                 </div>
 
             </div>
@@ -803,31 +438,15 @@
                 <table>
 
                     <thead>
-
                         <tr>
-
-                            <th>
-                                المستوى
-                            </th>
-
-                            <th>
-                                الإجمالي
-                            </th>
-
-                            <th>
-                                الترقية
-                            </th>
-
-                            <th>
-                                التثبيت
-                            </th>
-
+                            <th>المستوى</th>
+                            <th>إجمالي الشحن</th>
+                            <th>XP للترقية</th>
+                            <th>XP للحفاظ</th>
                         </tr>
-
                     </thead>
 
-
-                    <tbody id="vipTableBody"></tbody>
+                    <tbody id="vipTable"></tbody>
 
                 </table>
 
@@ -836,147 +455,68 @@
         </section>
 
 
-
-        <!-- =================================================
-             STATISTICS
-        ================================================== -->
+        <!-- ================= لوحة الإحصائيات المخفية ================= -->
 
         <section class="stats-section">
 
-            <button
-                id="statsToggle"
-                class="stats-toggle"
-                type="button"
-            >
+            <button id="statsToggle" class="stats-toggle">
 
                 <span>
-
-                    <b>
-                        الإحصائيات
-                    </b>
-
-                    <small>
-                        إجمالي العمليات والعملاء والشحن
-                    </small>
-
+                    <b>لوحة الإحصائيات</b>
+                    <small>اضغط لعرض الإحصائيات</small>
                 </span>
 
-
-                <span id="statsArrow">
-                    ⌄
-                </span>
+                <strong id="statsArrow">⌄</strong>
 
             </button>
 
 
-            <div
-                id="statsPanel"
-                class="stats-panel hidden"
-            >
+            <div id="statsPanel" class="stats-panel hidden">
 
                 <div class="stats-grid">
 
                     <div class="stat-box">
-
-                        <span>
-                            العمليات
-                        </span>
-
-                        <strong id="statOperations">
-                            0
-                        </strong>
-
+                        <span>إجمالي العمليات</span>
+                        <strong id="statOperations">0</strong>
                     </div>
 
-
                     <div class="stat-box">
-
-                        <span>
-                            العملاء
-                        </span>
-
-                        <strong id="statCustomers">
-                            0
-                        </strong>
-
+                        <span>إجمالي العملاء</span>
+                        <strong id="statCustomers">0</strong>
                     </div>
 
-
                     <div class="stat-box">
-
-                        <span>
-                            إجمالي الشحن
-                        </span>
-
-                        <strong id="statCharge">
-                            0
-                        </strong>
-
+                        <span>إجمالي الشحن</span>
+                        <strong id="statCharge">0</strong>
+                        <small>كوينز</small>
                     </div>
 
-
                     <div class="stat-box">
-
-                        <span>
-                            إجمالي الدعم
-                        </span>
-
-                        <strong id="statSupport">
-                            0
-                        </strong>
-
+                        <span>إجمالي الدعم</span>
+                        <strong id="statSupport">0</strong>
+                        <small>دعم</small>
                     </div>
 
-
                     <div class="stat-box">
-
-                        <span>
-                            إجمالي VIP
-                        </span>
-
-                        <strong id="statVipPoints">
-                            0
-                        </strong>
-
+                        <span>إجمالي نقاط VIP</span>
+                        <strong id="statVipPoints">0</strong>
                     </div>
 
-
                     <div class="stat-box">
-
-                        <span>
-                            إجمالي الدينار
-                        </span>
-
-                        <strong id="statJod">
-                            0
-                        </strong>
-
+                        <span>إجمالي سعر الدعم</span>
+                        <strong id="statJod">0.00</strong>
+                        <small>د.أ</small>
                     </div>
 
-
                     <div class="stat-box">
-
-                        <span>
-                            إجمالي الدولار
-                        </span>
-
-                        <strong id="statUsd">
-                            0
-                        </strong>
-
+                        <span>إجمالي سعر الدعم</span>
+                        <strong id="statUsd">0.00</strong>
+                        <small>$</small>
                     </div>
 
-
                     <div class="stat-box">
-
-                        <span>
-                            أعلى مستوى
-                        </span>
-
-                        <strong id="statHighestVip">
-                            —
-                        </strong>
-
+                        <span>أعلى مستوى مستهدف</span>
+                        <strong id="statHighestVip">VIP 0</strong>
                     </div>
 
                 </div>
@@ -986,29 +526,17 @@
         </section>
 
 
-
-        <!-- =================================================
-             NORMAL CALCULATOR
-        ================================================== -->
+        <!-- ================= الحاسبة العادية ================= -->
 
         <section class="card calculator-card">
 
             <div class="section-title">
 
-                <span>
-                    CALC
-                </span>
+                <span>06</span>
 
                 <div>
-
-                    <h2>
-                        الحاسبة العادية
-                    </h2>
-
-                    <p>
-                        عمليات حسابية سريعة
-                    </p>
-
+                    <h2>الحاسبة</h2>
+                    <p>حاسبة عادية سريعة مثل حاسبة الهاتف</p>
                 </div>
 
             </div>
@@ -1020,146 +548,41 @@
 
                     <div id="calculatorHistory"></div>
 
-                    <div id="calculatorResult">
-                        0
-                    </div>
+                    <div id="calculatorResult">0</div>
 
                 </div>
 
 
                 <div class="calculator-buttons">
 
-                    <button
-                        class="calc-btn function"
-                        data-action="clear"
-                        type="button"
-                    >
-                        AC
-                    </button>
-
-                    <button
-                        class="calc-btn function"
-                        data-action="delete"
-                        type="button"
-                    >
-                        DEL
-                    </button>
-
-                    <button
-                        class="calc-btn operator"
-                        data-value="%"
-                        type="button"
-                    >
-                        %
-                    </button>
-
-                    <button
-                        class="calc-btn operator"
-                        data-value="/"
-                        type="button"
-                    >
-                        ÷
-                    </button>
+                    <button class="calc-btn function" data-action="clear">C</button>
+                    <button class="calc-btn function" data-action="delete">⌫</button>
+                    <button class="calc-btn function" data-value="%">%</button>
+                    <button class="calc-btn operator" data-value="/">÷</button>
 
 
-                    <button
-                        class="calc-btn"
-                        data-value="7"
-                        type="button"
-                    >7</button>
-
-                    <button
-                        class="calc-btn"
-                        data-value="8"
-                        type="button"
-                    >8</button>
-
-                    <button
-                        class="calc-btn"
-                        data-value="9"
-                        type="button"
-                    >9</button>
-
-                    <button
-                        class="calc-btn operator"
-                        data-value="*"
-                        type="button"
-                    >×</button>
+                    <button class="calc-btn" data-value="7">7</button>
+                    <button class="calc-btn" data-value="8">8</button>
+                    <button class="calc-btn" data-value="9">9</button>
+                    <button class="calc-btn operator" data-value="*">×</button>
 
 
-                    <button
-                        class="calc-btn"
-                        data-value="4"
-                        type="button"
-                    >4</button>
-
-                    <button
-                        class="calc-btn"
-                        data-value="5"
-                        type="button"
-                    >5</button>
-
-                    <button
-                        class="calc-btn"
-                        data-value="6"
-                        type="button"
-                    >6</button>
-
-                    <button
-                        class="calc-btn operator"
-                        data-value="-"
-                        type="button"
-                    >−</button>
+                    <button class="calc-btn" data-value="4">4</button>
+                    <button class="calc-btn" data-value="5">5</button>
+                    <button class="calc-btn" data-value="6">6</button>
+                    <button class="calc-btn operator" data-value="-">−</button>
 
 
-                    <button
-                        class="calc-btn"
-                        data-value="1"
-                        type="button"
-                    >1</button>
-
-                    <button
-                        class="calc-btn"
-                        data-value="2"
-                        type="button"
-                    >2</button>
-
-                    <button
-                        class="calc-btn"
-                        data-value="3"
-                        type="button"
-                    >3</button>
-
-                    <button
-                        class="calc-btn operator"
-                        data-value="+"
-                        type="button"
-                    >+</button>
+                    <button class="calc-btn" data-value="1">1</button>
+                    <button class="calc-btn" data-value="2">2</button>
+                    <button class="calc-btn" data-value="3">3</button>
+                    <button class="calc-btn operator" data-value="+">+</button>
 
 
-                    <button
-                        class="calc-btn"
-                        data-value="00"
-                        type="button"
-                    >00</button>
-
-                    <button
-                        class="calc-btn"
-                        data-value="0"
-                        type="button"
-                    >0</button>
-
-                    <button
-                        class="calc-btn"
-                        data-value="."
-                        type="button"
-                    >.</button>
-
-                    <button
-                        class="calc-btn equals"
-                        data-action="equals"
-                        type="button"
-                    >=</button>
+                    <button class="calc-btn double-zero" data-value="00">00</button>
+                    <button class="calc-btn" data-value="0">0</button>
+                    <button class="calc-btn" data-value=".">.</button>
+                    <button class="calc-btn equals" data-action="equals">=</button>
 
                 </div>
 
@@ -1168,69 +591,33 @@
         </section>
 
 
-
-        <!-- =================================================
-             CONTACT
-        ================================================== -->
+        <!-- ================= معلومات النظام ================= -->
 
         <section class="contact-card">
 
-            <h2>
-                معلومات التواصل
-            </h2>
+            <h2>بيانات نظام الشحن</h2>
 
 
             <div class="contact-grid">
 
                 <div>
-
-                    <span>
-                        الاسم
-                    </span>
-
-                    <strong>
-                        مجلس القمة للشحن
-                    </strong>
-
+                    <span>الوكيل غليص</span>
+                    <strong>14935693</strong>
                 </div>
 
-
                 <div>
-
-                    <span>
-                        الخدمة
-                    </span>
-
-                    <strong>
-                        VIP & Charging
-                    </strong>
-
+                    <span>ID F90</span>
+                    <strong>31991930</strong>
                 </div>
 
-
                 <div>
-
-                    <span>
-                        الدعم
-                    </span>
-
-                    <strong>
-                        متاح للعملاء
-                    </strong>
-
+                    <span>حساب غليص</span>
+                    <strong>JOR</strong>
                 </div>
 
-
                 <div>
-
-                    <span>
-                        Instagram
-                    </span>
-
-                    <strong>
-                        @f90.xd
-                    </strong>
-
+                    <span>ID لورد</span>
+                    <strong>12221042</strong>
                 </div>
 
             </div>
@@ -1239,66 +626,46 @@
             <div class="phones">
 
                 <div>
-
-                    WhatsApp
-
-                    <strong>
-                        +970568181910
-                    </strong>
-
+                    غليص
+                    <strong>+963938722013</strong>
                 </div>
 
-
                 <div>
-
-                    Instagram
-
-                    <strong>
-                        @f90.xd
-                    </strong>
-
+                    F90
+                    <strong>+970568181910</strong>
                 </div>
 
-
                 <div>
-
-                    VIP Calculator
-
-                    <strong>
-                        Majlis Al-Qimma
-                    </strong>
-
+                    لورد
+                    <strong>+962775630834</strong>
                 </div>
 
             </div>
 
         </section>
 
-
     </main>
-
 
 
     <footer>
 
-        <div>
-            جميع الحقوق محفوظة
+        <div class="footer-title">
+            تم تطوير هذا الموقع بواسطة
         </div>
 
         <div class="footer-brand">
-            مجلس القمة للشحن
+            F90 — أف تسعين للخدمات الرقمية
         </div>
 
         <div class="instagram">
-            @f90.xd
+            Instagram: @f90.xd
         </div>
 
     </footer>
 
 </div>
 
-
 <script src="script.js"></script>
 
 </body>
-                        </html>
+</html>
