@@ -1332,23 +1332,67 @@ enableTargetLock.addEventListener(
 
 
 /* =========================================================
-   قيمة الانتقال الأول
+   تغييرات خانات الانتقال
 ========================================================= */
 
-transitionList.addEventListener(
-    "input",
-    event => {
+transitionList.addEventListener("input", function (event) {
+
+    const input = event.target;
+
+    if (
+        input.classList.contains("transition-value") ||
+        input.classList.contains("current-lock-value")
+    ) {
+        calculate();
+    }
+
+});
+
+
+transitionList.addEventListener("change", function (event) {
+
+    const input = event.target;
+
+    if (
+        input.classList.contains("transition-value") ||
+        input.classList.contains("current-lock-value")
+    ) {
+        calculate();
+    }
+
+});
+
+
+transitionList.addEventListener("keydown", function (event) {
+
+    const input = event.target;
+
+    if (
+        input.classList.contains("transition-value") ||
+        input.classList.contains("current-lock-value")
+    ) {
+
+        /*
+        السماح بالحذف والتنقل داخل خانة الرقم
+        */
 
         if (
-            event.target.matches(
-                ".first-transition-value"
-            )
+            event.key === "Backspace" ||
+            event.key === "Delete" ||
+            event.key === "ArrowLeft" ||
+            event.key === "ArrowRight" ||
+            event.key === "ArrowUp" ||
+            event.key === "ArrowDown" ||
+            event.key === "Home" ||
+            event.key === "End" ||
+            event.key === "Tab"
         ) {
-
-            calculate();
+            return;
         }
+
     }
-);
+
+});
 
 
 /* =========================================================
