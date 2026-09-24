@@ -1,14 +1,13 @@
 "use strict";
 
-
 /* =========================================================
-   مجلس القمة للشحن
-   النسخة النهائية
+مجلس القمة للشحن
+النسخة النهائية - إصلاح حسبة VIP
 ========================================================= */
 
 
 /* =========================================================
-   VIP TABLE
+VIP TABLE
 ========================================================= */
 
 const VIP_TABLE = [
@@ -157,19 +156,18 @@ const VIP_TABLE = [
 
 
 /* =========================================================
-   STORAGE
+STORAGE
 ========================================================= */
 
 const STORAGE_KEY =
     "majlis_alqimma_vip_records_v5";
-
 
 let historyRecords =
     loadHistory();
 
 
 /* =========================================================
-   HELPERS
+HELPERS
 ========================================================= */
 
 function byId(id) {
@@ -189,26 +187,21 @@ function numberValue(value) {
         return 0;
     }
 
-
     const cleaned =
         String(value)
             .replace(/,/g, "")
             .trim();
 
-
     if (cleaned === "") {
         return 0;
     }
 
-
     const result =
         Number(cleaned);
-
 
     return Number.isFinite(result)
         ? result
         : 0;
-
 }
 
 
@@ -218,7 +211,6 @@ function formatNumber(value, decimals = 0) {
         value = 0;
     }
 
-
     return value.toLocaleString(
         "en-US",
         {
@@ -226,7 +218,6 @@ function formatNumber(value, decimals = 0) {
             maximumFractionDigits: decimals
         }
     );
-
 }
 
 
@@ -244,10 +235,9 @@ function formatMoney(value) {
 }
 
 
-/*
-   هذه الدالة تجعل كل خانات الأرقام
-   قابلة للمسح وإعادة الإدخال.
-*/
+/* =========================================================
+NUMERIC INPUT
+========================================================= */
 
 function cleanNumericInput(input) {
 
@@ -255,31 +245,18 @@ function cleanNumericInput(input) {
         return;
     }
 
-
     input.addEventListener(
         "input",
         function () {
 
-            /*
-               لا نحول القيمة إلى Number أثناء الكتابة.
-               هذا هو السبب الذي يسمح بمسح الرقم بالكامل.
-            */
-
             const original =
                 input.value;
-
-
-            /*
-               نسمح بالأرقام والفاصلة والنقطة
-               وعلامة السالب عند الحاجة.
-            */
 
             const cleaned =
                 original.replace(
                     /[^\d.,-]/g,
                     ""
                 );
-
 
             if (cleaned !== original) {
                 input.value = cleaned;
@@ -291,27 +268,25 @@ function cleanNumericInput(input) {
 }
 
 
-/* =========================================================
-   INITIALIZE NUMERIC FIELDS
-========================================================= */
-
 [
     "supportRate",
     "jodRate",
     "usdRate",
     "targetInput",
     "gamesInput"
-].forEach(function (id) {
+].forEach(
+    function (id) {
 
-    cleanNumericInput(
-        byId(id)
-    );
+        cleanNumericInput(
+            byId(id)
+        );
 
-});
+    }
+);
 
 
 /* =========================================================
-   VIP SELECTS
+VIP SELECTS
 ========================================================= */
 
 function buildVipSelects() {
@@ -322,48 +297,49 @@ function buildVipSelects() {
     const target =
         byId("targetVip");
 
-
     if (!current || !target) {
         return;
     }
 
-
     current.innerHTML = "";
-
     target.innerHTML = "";
 
+    VIP_TABLE.forEach(
+        function (item) {
 
-    VIP_TABLE.forEach(function (item) {
+            const optionCurrent =
+                document.createElement(
+                    "option"
+                );
 
-        const optionCurrent =
-            document.createElement("option");
+            optionCurrent.value =
+                item.level;
 
-        optionCurrent.value =
-            item.level;
+            optionCurrent.textContent =
+                "VIP " + item.level;
 
-        optionCurrent.textContent =
-            "VIP " + item.level;
-
-        current.appendChild(
-            optionCurrent
-        );
+            current.appendChild(
+                optionCurrent
+            );
 
 
-        const optionTarget =
-            document.createElement("option");
+            const optionTarget =
+                document.createElement(
+                    "option"
+                );
 
-        optionTarget.value =
-            item.level;
+            optionTarget.value =
+                item.level;
 
-        optionTarget.textContent =
-            "VIP " + item.level;
+            optionTarget.textContent =
+                "VIP " + item.level;
 
-        target.appendChild(
-            optionTarget
-        );
+            target.appendChild(
+                optionTarget
+            );
 
-    });
-
+        }
+    );
 
     current.value = "10";
     target.value = "11";
@@ -375,7 +351,7 @@ buildVipSelects();
 
 
 /* =========================================================
-   VIP TABLE RENDER
+VIP TABLE RENDER
 ========================================================= */
 
 function renderVipTable() {
@@ -383,45 +359,44 @@ function renderVipTable() {
     const tbody =
         byId("vipTable");
 
-
     if (!tbody) {
         return;
     }
 
-
     tbody.innerHTML = "";
 
+    VIP_TABLE.forEach(
+        function (item) {
 
-    VIP_TABLE.forEach(function (item) {
+            const tr =
+                document.createElement(
+                    "tr"
+                );
 
-        const tr =
-            document.createElement("tr");
+            tr.innerHTML = `
 
+                <td>
+                    VIP ${item.level}
+                </td>
 
-        tr.innerHTML = `
+                <td>
+                    ${formatCoins(item.total)}
+                </td>
 
-            <td>
-                VIP ${item.level}
-            </td>
+                <td>
+                    ${formatCoins(item.upgrade)}
+                </td>
 
-            <td>
-                ${formatCoins(item.total)}
-            </td>
+                <td>
+                    ${formatCoins(item.maintain)}
+                </td>
 
-            <td>
-                ${formatCoins(item.upgrade)}
-            </td>
+            `;
 
-            <td>
-                ${formatCoins(item.maintain)}
-            </td>
+            tbody.appendChild(tr);
 
-        `;
-
-
-        tbody.appendChild(tr);
-
-    });
+        }
+    );
 
 }
 
@@ -430,19 +405,26 @@ renderVipTable();
 
 
 /* =========================================================
-   TRANSITION CALCULATOR
+GET VIP
 ========================================================= */
 
 function getVip(level) {
 
     return VIP_TABLE.find(
         function (item) {
-            return item.level === Number(level);
+
+            return item.level ===
+                Number(level);
+
         }
     );
 
 }
 
+
+/* =========================================================
+TRANSITIONS
+========================================================= */
 
 function renderTransitions() {
 
@@ -459,11 +441,9 @@ function renderTransitions() {
             byId("targetVip").value
         );
 
-
     if (!area) {
         return;
     }
-
 
     area.innerHTML = "";
 
@@ -483,27 +463,21 @@ function renderTransitions() {
     const firstTarget =
         current + 1;
 
-
     const first =
         getVip(firstTarget);
-
 
     if (!first) {
         return;
     }
 
 
-    /*
-       الانتقال الأول هو الوحيد الذي يدخله المستخدم.
-    */
-
     const firstBox =
-        document.createElement("div");
-
+        document.createElement(
+            "div"
+        );
 
     firstBox.className =
         "transition first-transition";
-
 
     firstBox.innerHTML = `
 
@@ -529,7 +503,6 @@ function renderTransitions() {
 
     `;
 
-
     area.appendChild(firstBox);
 
 
@@ -538,14 +511,12 @@ function renderTransitions() {
     );
 
 
-    /*
-       بقية الانتقالات تلقائية.
-    */
-
     if (target > firstTarget) {
 
         const title =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
         title.className =
             "automatic-title";
@@ -574,18 +545,18 @@ function renderTransitions() {
             const next =
                 getVip(level + 1);
 
-
             if (!next) {
                 continue;
             }
 
 
             const box =
-                document.createElement("div");
+                document.createElement(
+                    "div"
+                );
 
             box.className =
                 "transition automatic-transition";
-
 
             box.innerHTML = `
 
@@ -601,7 +572,6 @@ function renderTransitions() {
 
                 </div>
 
-
                 <div class="auto-transition-value">
 
                     <span>
@@ -616,7 +586,6 @@ function renderTransitions() {
 
             `;
 
-
             area.appendChild(box);
 
         }
@@ -626,7 +595,6 @@ function renderTransitions() {
 
     const firstInput =
         byId("firstTransitionInput");
-
 
     if (firstInput) {
 
@@ -640,16 +608,18 @@ function renderTransitions() {
 }
 
 
+/* =========================================================
+FIRST TRANSITION
+========================================================= */
+
 function getFirstTransitionValue() {
 
     const input =
         byId("firstTransitionInput");
 
-
     if (!input) {
         return 0;
     }
-
 
     return numberValue(
         input.value
@@ -659,7 +629,7 @@ function getFirstTransitionValue() {
 
 
 /* =========================================================
-   VIP CALCULATION
+VIP CALCULATION
 ========================================================= */
 
 function calculateVip() {
@@ -669,12 +639,10 @@ function calculateVip() {
             byId("currentVip").value
         );
 
-
     const target =
         Number(
             byId("targetVip").value
         );
-
 
     const multiplier =
         numberValue(
@@ -689,11 +657,15 @@ function calculateVip() {
     let reachPoints = 0;
 
 
+    /* =====================================================
+       الوصول إلى المستوى المطلوب
+    ===================================================== */
+
     if (target > current) {
 
         /*
-           القيمة التي يدخلها المستخدم
-           هي قيمة النقص في أول انتقال.
+        الانتقال الأول:
+        القيمة التي يدخلها المستخدم يدوياً.
         */
 
         reachPoints +=
@@ -701,8 +673,8 @@ function calculateVip() {
 
 
         /*
-           باقي المستويات تحسب تلقائياً
-           من جدول VIP.
+        باقي الانتقالات:
+        تحسب تلقائياً من جدول VIP.
         */
 
         for (
@@ -713,7 +685,6 @@ function calculateVip() {
 
             const next =
                 getVip(level + 1);
-
 
             if (next) {
 
@@ -727,6 +698,10 @@ function calculateVip() {
     }
 
 
+    /* =====================================================
+       التثبيت
+    ===================================================== */
+
     let lockPoints = 0;
 
 
@@ -736,6 +711,10 @@ function calculateVip() {
         );
 
 
+    /*
+    تثبيت المستوى الحالي فقط
+    */
+
     if (
         mode &&
         mode.value === "currentLock"
@@ -743,7 +722,6 @@ function calculateVip() {
 
         const currentData =
             getVip(current);
-
 
         if (currentData) {
 
@@ -754,6 +732,10 @@ function calculateVip() {
 
     }
 
+
+    /*
+    تثبيت المستوى المطلوب
+    */
 
     const lockEnabled =
         byId("enableTargetLock") &&
@@ -769,7 +751,6 @@ function calculateVip() {
         const targetData =
             getVip(target);
 
-
         if (targetData) {
 
             lockPoints =
@@ -780,20 +761,33 @@ function calculateVip() {
     }
 
 
+    /* =====================================================
+       الإجمالي
+    ===================================================== */
+
     const totalVipPoints =
         reachPoints +
         lockPoints;
 
 
+    /*
+    مهم جداً:
+
+    نقاط VIP ÷ العرض = شحن الوكيل
+
+    وليس × العرض.
+
+    هذا هو الإصلاح الأساسي.
+    */
+
     const actualCharge =
-        totalVipPoints *
+        totalVipPoints /
         multiplier;
 
 
-    /*
-       دعم كل مليون:
-       الدعم = الشحن ÷ 1,000,000 × supportRate
-    */
+    /* =====================================================
+       SUPPORT
+    ===================================================== */
 
     const supportRate =
         numberValue(
@@ -801,17 +795,26 @@ function calculateVip() {
         );
 
 
-    const supportNeeded =
-        actualCharge /
-        1000000 *
-        supportRate;
+    let supportNeeded = 0;
 
+    if (supportRate > 0) {
+
+        supportNeeded =
+            actualCharge /
+            1000000 *
+            supportRate;
+
+    }
+
+
+    /* =====================================================
+       MONEY
+    ===================================================== */
 
     const jodRate =
         numberValue(
             byId("jodRate").value
         );
-
 
     const usdRate =
         numberValue(
@@ -819,17 +822,29 @@ function calculateVip() {
         );
 
 
-    const jodTotal =
-        supportNeeded /
-        supportRate *
-        jodRate;
+    let jodTotal = 0;
+    let usdTotal = 0;
 
 
-    const usdTotal =
-        supportNeeded /
-        supportRate *
-        usdRate;
+    if (supportRate > 0) {
 
+        jodTotal =
+            supportNeeded /
+            supportRate *
+            jodRate;
+
+
+        usdTotal =
+            supportNeeded /
+            supportRate *
+            usdRate;
+
+    }
+
+
+    /* =====================================================
+       UPDATE
+    ===================================================== */
 
     updateVipResult({
 
@@ -874,7 +889,7 @@ function calculateVip() {
 
 
 /* =========================================================
-   VIP RESULT
+VIP RESULT
 ========================================================= */
 
 function updateVipResult(data) {
@@ -973,7 +988,6 @@ function updateVipResult(data) {
 
         }
 
-
         if (autoLevel) {
 
             autoLevel.textContent =
@@ -987,7 +1001,7 @@ function updateVipResult(data) {
 
 
 /* =========================================================
-   MODES
+MODES
 ========================================================= */
 
 function updateMode() {
@@ -1003,7 +1017,6 @@ function updateMode() {
 
     const lockLabel =
         byId("currentLockLabel");
-
 
     const transitionArea =
         byId("transitionArea");
@@ -1032,6 +1045,7 @@ function updateMode() {
             "hidden"
         );
 
+
         lockBox.classList.remove(
             "hidden"
         );
@@ -1051,6 +1065,7 @@ function updateMode() {
             "hidden"
         );
 
+
         lockBox.classList.add(
             "hidden"
         );
@@ -1064,20 +1079,24 @@ function updateMode() {
 
 
 /* =========================================================
-   LOCK SWITCH
+LOCK SWITCH
 ========================================================= */
 
 function updateLock() {
 
-    const enabled =
-        byId("enableTargetLock").checked;
-
+    const checkbox =
+        byId("enableTargetLock");
 
     const targetInput =
         byId("targetLockInput");
 
 
-    if (enabled) {
+    if (!checkbox || !targetInput) {
+        return;
+    }
+
+
+    if (checkbox.checked) {
 
         targetInput.classList.remove(
             "hidden"
@@ -1098,7 +1117,7 @@ function updateLock() {
 
 
 /* =========================================================
-   INPUT EVENTS
+INPUT EVENTS
 ========================================================= */
 
 [
@@ -1108,82 +1127,93 @@ function updateLock() {
     "supportRate",
     "jodRate",
     "usdRate"
-].forEach(function (id) {
+].forEach(
+    function (id) {
 
-    const element =
-        byId(id);
+        const element =
+            byId(id);
+
+        if (!element) {
+            return;
+        }
 
 
-    if (!element) {
-        return;
+        element.addEventListener(
+            "input",
+            function () {
+
+                if (
+                    id === "currentVip" ||
+                    id === "targetVip"
+                ) {
+
+                    renderTransitions();
+
+                }
+
+                calculateVip();
+
+            }
+        );
+
+
+        element.addEventListener(
+            "change",
+            function () {
+
+                if (
+                    id === "currentVip" ||
+                    id === "targetVip"
+                ) {
+
+                    renderTransitions();
+
+                }
+
+                calculateVip();
+
+            }
+        );
+
     }
+);
 
 
-    element.addEventListener(
-        "input",
-        function () {
-
-            if (
-                id === "currentVip" ||
-                id === "targetVip"
-            ) {
-
-                renderTransitions();
-
-            }
-
-
-            calculateVip();
-
-        }
-    );
-
-
-    element.addEventListener(
-        "change",
-        function () {
-
-            if (
-                id === "currentVip" ||
-                id === "targetVip"
-            ) {
-
-                renderTransitions();
-
-            }
-
-
-            calculateVip();
-
-        }
-    );
-
-});
-
+/* =========================================================
+MODE EVENTS
+========================================================= */
 
 document
     .querySelectorAll(
         'input[name="mode"]'
     )
-    .forEach(function (radio) {
+    .forEach(
+        function (radio) {
 
-        radio.addEventListener(
-            "change",
-            updateMode
-        );
+            radio.addEventListener(
+                "change",
+                updateMode
+            );
 
-    });
+        }
+    );
 
 
-byId("enableTargetLock")
-    .addEventListener(
+const lockCheckbox =
+    byId("enableTargetLock");
+
+if (lockCheckbox) {
+
+    lockCheckbox.addEventListener(
         "change",
         updateLock
     );
 
+}
+
 
 /* =========================================================
-   INITIAL VIP
+INITIAL VIP
 ========================================================= */
 
 renderTransitions();
@@ -1194,7 +1224,7 @@ calculateVip();
 
 
 /* =========================================================
-   SAVE / HISTORY
+STORAGE
 ========================================================= */
 
 function loadHistory() {
@@ -1238,6 +1268,10 @@ function saveHistory() {
 
 }
 
+
+/* =========================================================
+CREATE RECORD
+========================================================= */
 
 function createRecord() {
 
@@ -1294,11 +1328,14 @@ function createRecord() {
 }
 
 
+/* =========================================================
+SAVE
+========================================================= */
+
 function saveCurrentOperation() {
 
     const name =
         byId("clientName").value.trim();
-
 
     const id =
         byId("clientId").value.trim();
@@ -1346,7 +1383,7 @@ byId("saveBtn")
 
 
 /* =========================================================
-   HISTORY RENDER
+HISTORY
 ========================================================= */
 
 function renderHistory() {
@@ -1377,16 +1414,16 @@ function renderHistory() {
                         String(
                             record.clientName || ""
                         )
-                        .toLowerCase()
-                        .includes(search)
+                            .toLowerCase()
+                            .includes(search)
 
                         ||
 
                         String(
                             record.clientId || ""
                         )
-                        .toLowerCase()
-                        .includes(search)
+                            .toLowerCase()
+                            .includes(search)
 
                     );
 
@@ -1412,90 +1449,98 @@ function renderHistory() {
     container.innerHTML = "";
 
 
-    records.forEach(function (record) {
+    records.forEach(
+        function (record) {
 
-        const item =
-            document.createElement("div");
-
-
-        item.className =
-            "history-item";
-
-
-        const date =
-            new Date(
-                record.createdAt
-            );
+            const item =
+                document.createElement(
+                    "div"
+                );
 
 
-        const dateText =
-            date.toLocaleString(
-                "ar",
-                {
-                    dateStyle: "medium",
-                    timeStyle: "short"
-                }
-            );
+            item.className =
+                "history-item";
 
 
-        item.innerHTML = `
-
-            <div class="history-main">
-
-                <strong>
-                    ${escapeHtml(
-                        record.clientName || "بدون اسم"
-                    )}
-                </strong>
-
-                <span>
-                    ID:
-                    ${escapeHtml(
-                        record.clientId || "-"
-                    )}
-                </span>
-
-                <span>
-                    VIP ${record.currentVip}
-                    →
-                    VIP ${record.targetVip}
-                    ·
-                    ${formatCoins(record.actualCharge)}
-                    كوينز
-                </span>
-
-                <span>
-                    ${dateText}
-                </span>
-
-            </div>
+            const date =
+                new Date(
+                    record.createdAt
+                );
 
 
-            <div class="history-buttons">
-
-                <button
-                    type="button"
-                    data-load="${record.id}"
-                >
-                    استرجاع
-                </button>
-
-                <button
-                    type="button"
-                    class="delete"
-                    data-delete="${record.id}"
-                >
-                    حذف
-                </button>
-
-            </div>
-
-        `;
+            const dateText =
+                date.toLocaleString(
+                    "ar",
+                    {
+                        dateStyle: "medium",
+                        timeStyle: "short"
+                    }
+                );
 
 
-        container.appendChild(item);
+            item.innerHTML = `
 
-    });
+                <div class="history-main">
+
+                    <strong>
+                        ${escapeHtml(
+                            record.clientName ||
+                            "بدون اسم"
+                        )}
+                    </strong>
+
+                    <span>
+                        ID:
+                        ${escapeHtml(
+                            record.clientId ||
+                            "-"
+                        )}
+                    </span>
+
+                    <span>
+                        VIP ${record.currentVip}
+                        →
+                        VIP ${record.targetVip}
+                        ·
+                        ${formatCoins(
+                            record.actualCharge
+                        )}
+                        كوينز
+                    </span>
+
+                    <span>
+                        ${dateText}
+                    </span>
+
+                </div>
+
+
+                <div class="history-buttons">
+
+                    <button
+                        type="button"
+                        data-load="${record.id}"
+                    >
+                        استرجاع
+                    </button>
+
+                    <button
+                        type="button"
+                        class="delete"
+                        data-delete="${record.id}"
+                    >
+                        حذف
+                    </button>
+
+                </div>
+
+            `;
+
+
+            container.appendChild(item);
+
+        }
+    );
 
 }
 
@@ -1560,12 +1605,18 @@ byId("history")
     );
 
 
+/* =========================================================
+LOAD RECORD
+========================================================= */
+
 function loadRecord(id) {
 
     const record =
         historyRecords.find(
             function (item) {
+
                 return item.id === id;
+
             }
         );
 
@@ -1584,26 +1635,34 @@ function loadRecord(id) {
 
 
     byId("currentVip").value =
-        String(record.currentVip);
+        String(
+            record.currentVip
+        );
 
 
     byId("targetVip").value =
-        String(record.targetVip);
+        String(
+            record.targetVip
+        );
 
 
     byId("multiplier").value =
-        String(record.multiplier);
+        String(
+            record.multiplier
+        );
 
 
     renderTransitions();
-
 
     calculateVip();
 
 
     window.scrollTo({
+
         top: 0,
+
         behavior: "smooth"
+
     });
 
 
@@ -1614,12 +1673,18 @@ function loadRecord(id) {
 }
 
 
+/* =========================================================
+DELETE RECORD
+========================================================= */
+
 function deleteRecord(id) {
 
     historyRecords =
         historyRecords.filter(
             function (item) {
+
                 return item.id !== id;
+
             }
         );
 
@@ -1632,6 +1697,10 @@ function deleteRecord(id) {
 
 }
 
+
+/* =========================================================
+CLEAR HISTORY
+========================================================= */
 
 byId("clearHistory")
     .addEventListener(
@@ -1667,7 +1736,7 @@ byId("clearHistory")
 
 
 /* =========================================================
-   NEW OPERATION
+NEW OPERATION
 ========================================================= */
 
 byId("newBtn")
@@ -1675,16 +1744,20 @@ byId("newBtn")
         "click",
         function () {
 
-            byId("clientName").value = "";
+            byId("clientName").value =
+                "";
 
-            byId("clientId").value = "";
+            byId("clientId").value =
+                "";
 
 
             byId("currentVip").value =
                 "10";
 
+
             byId("targetVip").value =
                 "11";
+
 
             byId("multiplier").value =
                 "5";
@@ -1693,8 +1766,10 @@ byId("newBtn")
             byId("supportRate").value =
                 "130000";
 
+
             byId("jodRate").value =
                 "11";
+
 
             byId("usdRate").value =
                 "15";
@@ -1706,6 +1781,7 @@ byId("newBtn")
 
             byId("targetInput").value =
                 "";
+
 
             byId("gamesInput").value =
                 "";
@@ -1725,8 +1801,11 @@ byId("newBtn")
 
 
             window.scrollTo({
+
                 top: 0,
+
                 behavior: "smooth"
+
             });
 
         }
@@ -1734,7 +1813,7 @@ byId("newBtn")
 
 
 /* =========================================================
-   STATUS
+STATUS
 ========================================================= */
 
 let statusTimer = null;
@@ -1760,7 +1839,9 @@ function showStatus(message) {
     );
 
 
-    clearTimeout(statusTimer);
+    clearTimeout(
+        statusTimer
+    );
 
 
     statusTimer =
@@ -1779,7 +1860,7 @@ function showStatus(message) {
 
 
 /* =========================================================
-   STATS
+STATS
 ========================================================= */
 
 function renderStats() {
@@ -1790,16 +1871,17 @@ function renderStats() {
 
     const customers =
         new Set(
-            historyRecords
-                .map(
-                    function (record) {
-                        return (
-                            record.clientId ||
-                            record.clientName ||
-                            record.id
-                        );
-                    }
-                )
+            historyRecords.map(
+                function (record) {
+
+                    return (
+                        record.clientId ||
+                        record.clientName ||
+                        record.id
+                    );
+
+                }
+            )
         ).size;
 
 
@@ -1857,31 +1939,45 @@ function renderStats() {
 
 
     byId("statOperations").textContent =
-        formatNumber(operations);
+        formatNumber(
+            operations
+        );
 
 
     byId("statCustomers").textContent =
-        formatNumber(customers);
+        formatNumber(
+            customers
+        );
 
 
     byId("statCharge").textContent =
-        formatCoins(charge);
+        formatCoins(
+            charge
+        );
 
 
     byId("statSupport").textContent =
-        formatCoins(support);
+        formatCoins(
+            support
+        );
 
 
     byId("statVipPoints").textContent =
-        formatCoins(vipPoints);
+        formatCoins(
+            vipPoints
+        );
 
 
     byId("statJod").textContent =
-        formatMoney(jod);
+        formatMoney(
+            jod
+        );
 
 
     byId("statUsd").textContent =
-        formatMoney(usd);
+        formatMoney(
+            usd
+        );
 
 
     byId("statHighestVip").textContent =
@@ -1894,7 +1990,7 @@ renderStats();
 
 
 /* =========================================================
-   STATS TOGGLE
+STATS TOGGLE
 ========================================================= */
 
 byId("statsToggle")
@@ -1936,7 +2032,7 @@ byId("statsToggle")
 
 
 /* =========================================================
-   THEME
+THEME
 ========================================================= */
 
 const THEME_KEY =
@@ -1951,6 +2047,7 @@ function applyTheme(theme) {
             "light"
         );
 
+
         byId("themeToggle").textContent =
             "☀";
 
@@ -1959,6 +2056,7 @@ function applyTheme(theme) {
         document.body.classList.remove(
             "light"
         );
+
 
         byId("themeToggle").textContent =
             "☾";
@@ -1974,7 +2072,9 @@ const savedTheme =
     ) || "dark";
 
 
-applyTheme(savedTheme);
+applyTheme(
+    savedTheme
+);
 
 
 byId("themeToggle")
@@ -2009,7 +2109,7 @@ byId("themeToggle")
 
 
 /* =========================================================
-   TARGET CALCULATOR
+TARGET CALCULATOR
 ========================================================= */
 
 const TARGET_JOD_RATE =
@@ -2017,7 +2117,6 @@ const TARGET_JOD_RATE =
 
 const TARGET_USD_RATE =
     10;
-
 
 const GAMES_JOD_RATE =
     6;
@@ -2110,7 +2209,7 @@ calculateGamesCalculator();
 
 
 /* =========================================================
-   COPY CONTACT
+COPY CONTACT
 ========================================================= */
 
 document
@@ -2133,38 +2232,35 @@ document
                     }
 
 
+                    const oldText =
+                        button.textContent;
+
+
                     try {
 
-                        await navigator.clipboard.writeText(
-                            value
-                        );
+                        if (
+                            navigator.clipboard &&
+                            navigator.clipboard.writeText
+                        ) {
 
+                            await navigator.clipboard.writeText(
+                                value
+                            );
 
-                        const oldText =
-                            button.textContent;
+                        } else {
+
+                            throw new Error(
+                                "Clipboard unavailable"
+                            );
+
+                        }
 
 
                         button.textContent =
                             "تم النسخ";
 
 
-                        setTimeout(
-                            function () {
-
-                                button.textContent =
-                                    oldText;
-
-                            },
-                            1200
-                        );
-
-
                     } catch (error) {
-
-                        /*
-                           بديل للأجهزة التي تمنع
-                           Clipboard API.
-                        */
 
                         const temp =
                             document.createElement(
@@ -2176,17 +2272,34 @@ document
                             value;
 
 
+                        temp.style.position =
+                            "fixed";
+
+                        temp.style.opacity =
+                            "0";
+
+
                         document.body.appendChild(
                             temp
                         );
 
 
+                        temp.focus();
+
                         temp.select();
 
 
-                        document.execCommand(
-                            "copy"
-                        );
+                        try {
+
+                            document.execCommand(
+                                "copy"
+                            );
+
+                        } catch (copyError) {
+
+                            /* تجاهل الخطأ */
+
+                        }
 
 
                         temp.remove();
@@ -2195,18 +2308,18 @@ document
                         button.textContent =
                             "تم النسخ";
 
-
-                        setTimeout(
-                            function () {
-
-                                button.textContent =
-                                    "نسخ";
-
-                            },
-                            1200
-                        );
-
                     }
+
+
+                    setTimeout(
+                        function () {
+
+                            button.textContent =
+                                oldText;
+
+                        },
+                        1200
+                    );
 
                 }
             );
@@ -2216,7 +2329,7 @@ document
 
 
 /* =========================================================
-   CALCULATE BUTTON
+CALCULATE BUTTON
 ========================================================= */
 
 byId("calculateBtn")
@@ -2230,6 +2343,7 @@ byId("calculateBtn")
 
             calculateGamesCalculator();
 
+
             showStatus(
                 "تم تحديث جميع النتائج"
             );
@@ -2239,7 +2353,7 @@ byId("calculateBtn")
 
 
 /* =========================================================
-   CLIENT INPUT
+CLIENT INPUT
 ========================================================= */
 
 byId("clientName")
@@ -2271,7 +2385,7 @@ byId("clientId")
 
 
 /* =========================================================
-   FINAL CALCULATION
+FINAL
 ========================================================= */
 
 calculateVip();
