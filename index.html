@@ -775,48 +775,54 @@
              04 - HISTORY
         ================================================== -->
 
-        <section class="card">
+        <section class="card collapsible-card">
 
-            <div class="section-title">
+    <div class="section-title collapsible-title" id="historyToggle">
 
-                <span>04</span>
+        <span>04</span>
 
-                <div>
+        <div>
 
-                    <h2>
-                        سجل العملاء والعمليات
-                    </h2>
+            <h2>
+                سجل العملاء والعمليات
+            </h2>
 
-                    <p>
-                        السجل محفوظ داخل المتصفح
-                    </p>
+            <p>
+                السجل محفوظ داخل المتصفح
+            </p>
 
-                </div>
+        </div>
 
-            </div>
+        <strong class="collapse-arrow">⌄</strong>
 
-
-            <div class="search-row">
-
-                <input
-                    id="historySearch"
-                    type="search"
-                    placeholder="ابحث باسم العميل أو ID..."
-                    autocomplete="off"
-                >
+    </div>
 
 
-                <button
-                    id="clearHistory"
-                    type="button"
-                >
-                    حذف الكل
-                </button>
+    <div id="historySectionContent" class="collapsible-content hidden">
 
-            </div>
+        <div class="search-row">
+
+            <input
+                id="historySearch"
+                type="search"
+                placeholder="ابحث باسم العميل أو ID..."
+                autocomplete="off"
+            >
 
 
-            <div id="history"></div>
+            <button
+                id="clearHistory"
+                type="button"
+            >
+                حذف الكل
+            </button>
+
+        </div>
+
+
+        <div id="history"></div>
+
+    </div>
 
         </section>
 
