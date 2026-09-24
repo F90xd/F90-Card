@@ -2764,3 +2764,55 @@ footer {
         height: 34px;
     }
     }
+
+    /* =========================================================
+   COLLAPSIBLE SECTIONS
+========================================================= */
+
+.collapsible-title {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+}
+
+.collapsible-title:hover {
+    opacity: 0.9;
+}
+
+.collapse-arrow {
+    margin-right: auto;
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid var(--line);
+    border-radius: 10px;
+
+    font-size: 22px;
+    line-height: 1;
+
+    transition:
+        transform 0.25s ease,
+        background 0.25s ease;
+}
+
+.collapsible-title.open .collapse-arrow {
+    transform: rotate(180deg);
+}
+
+.collapsible-content {
+    overflow: hidden;
+    max-height: 2000px;
+    opacity: 1;
+
+    transition:
+        max-height 0.3s ease,
+        opacity 0.2s ease;
+}
+
+.collapsible-content.hidden {
+    display: none;
+}
