@@ -824,3 +824,243 @@
 
 </body>
 </html>
+
+/* =========================================================
+   حاسبة التارجت ومكاسب الألعاب
+========================================================= */
+
+.target-calculator-card {
+    margin-top: 14px;
+}
+
+
+.target-calculator-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 13px;
+}
+
+
+.target-box {
+
+    padding: 17px;
+
+    border:
+        1px solid var(--line);
+
+    border-radius: 16px;
+
+    background: var(--card2);
+
+    transition:
+        border .2s ease,
+        transform .2s ease;
+}
+
+
+.target-box:hover {
+
+    border-color:
+        rgba(225,38,54,.35);
+
+    transform:
+        translateY(-1px);
+}
+
+
+.target-box-title {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin-bottom: 15px;
+}
+
+
+.target-box-title strong {
+
+    display: block;
+
+    font-size: 15px;
+}
+
+
+.target-box-title small {
+
+    display: block;
+
+    margin-top: 2px;
+
+    color: var(--muted);
+
+    font-size: 9px;
+}
+
+
+.target-box-title > span {
+
+    padding:
+        5px 8px;
+
+    border-radius: 7px;
+
+    color: #ff6674;
+
+    background:
+        rgba(225,38,54,.08);
+
+    border:
+        1px solid
+        rgba(225,38,54,.20);
+
+    font-size: 8px;
+
+    font-weight: 900;
+
+    letter-spacing: .7px;
+}
+
+
+.target-box .field input {
+
+    direction: ltr;
+
+    text-align: left;
+
+    font-size: 16px;
+
+    font-weight: 700;
+}
+
+
+.target-results {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 9px;
+
+    margin-top: 12px;
+}
+
+
+.target-result {
+
+    padding: 12px;
+
+    min-height: 76px;
+
+    border:
+        1px solid var(--line);
+
+    border-radius: 11px;
+
+    background: var(--input);
+
+    text-align: center;
+}
+
+
+.target-result span {
+
+    display: block;
+
+    color: var(--muted);
+
+    font-size: 9px;
+}
+
+
+.target-result strong {
+
+    display: block;
+
+    margin-top: 5px;
+
+    color: var(--text);
+
+    font-size: 17px;
+
+    overflow-wrap: anywhere;
+}
+
+
+.target-formula {
+
+    margin-top: 9px;
+
+    padding: 8px;
+
+    border-radius: 8px;
+
+    background:
+        rgba(41,200,138,.05);
+
+    border:
+        1px solid
+        rgba(41,200,138,.12);
+
+    text-align: center;
+
+    color: var(--muted);
+
+    font-size: 9px;
+}
+
+
+.game-box .target-result strong {
+
+    color: var(--green);
+}
+
+
+/* =========================================================
+   حاسبة التارجت - الهاتف
+========================================================= */
+
+@media (max-width: 600px) {
+
+    .target-calculator-grid {
+
+        grid-template-columns: 1fr;
+    }
+
+
+    .target-box {
+
+        padding: 15px;
+    }
+
+
+    .target-results {
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+
+    .target-result strong {
+
+        font-size: 15px;
+    }
+}
+
+
+@media (max-width: 380px) {
+
+    .target-results {
+
+        grid-template-columns: 1fr;
+    }
+}
