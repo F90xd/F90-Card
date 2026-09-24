@@ -2393,3 +2393,55 @@ calculateVip();
 renderHistory();
 
 renderStats();
+
+renderStats();
+
+/* =========================================================
+   COLLAPSIBLE CLIENT + HISTORY SECTIONS
+========================================================= */
+
+function setupCollapsibleSection(toggleId, contentId) {
+
+    const toggle = byId(toggleId);
+    const content = byId(contentId);
+
+    if (!toggle || !content) {
+        return;
+    }
+
+    toggle.addEventListener("click", function () {
+
+        const isHidden =
+            content.classList.contains("hidden");
+
+        if (isHidden) {
+
+            content.classList.remove("hidden");
+            toggle.classList.add("open");
+
+        } else {
+
+            content.classList.add("hidden");
+            toggle.classList.remove("open");
+
+        }
+
+    });
+
+}
+
+
+/* بيانات العميل */
+
+setupCollapsibleSection(
+    "clientToggle",
+    "clientSectionContent"
+);
+
+
+/* سجل العملاء والعمليات */
+
+setupCollapsibleSection(
+    "historyToggle",
+    "historySectionContent"
+);
