@@ -78,44 +78,75 @@
              01 - بيانات العميل
         ================================================== -->
 
-        <section class="card">
+        <section class="card collapsible-card">
 
-            <div class="section-title">
+    <div class="section-title collapsible-title" id="clientToggle">
 
-                <span>01</span>
+        <span>01</span>
 
-                <div>
+        <div>
+            <h2>
+                بيانات العميل
+            </h2>
 
-                    <h2>
-                        بيانات العميل
-                    </h2>
+            <p>
+                بيانات العميل والعملية
+            </p>
+        </div>
 
-                    <p>
-                        بيانات العميل والعملية
-                    </p>
+        <strong class="collapse-arrow">⌄</strong>
 
-                </div>
+    </div>
+
+
+    <div id="clientSectionContent" class="collapsible-content hidden">
+
+        <div class="grid-2">
+
+            <div class="field">
+
+                <label>
+                    اسم العميل
+                </label>
+
+                <input
+                    id="clientName"
+                    type="text"
+                    inputmode="text"
+                    placeholder="اسم العميل"
+                    autocomplete="off"
+                >
 
             </div>
 
 
-            <div class="grid-2">
+            <div class="field">
 
-                <div class="field">
+                <label>
+                    ID الحساب
+                </label>
 
-                    <label>
-                        اسم العميل
-                    </label>
+                <input
+                    id="clientId"
+                    type="text"
+                    inputmode="numeric"
+                    placeholder="ID الحساب"
+                    autocomplete="off"
+                >
 
-                    <input
-                        id="clientName"
-                        type="text"
-                        inputmode="text"
-                        placeholder="اسم العميل"
-                        autocomplete="off"
-                    >
+            </div>
 
-                </div>
+        </div>
+
+
+        <div
+            id="clientStatus"
+            class="status hidden"
+        ></div>
+
+    </div>
+
+        </section>
 
 
                 <div class="field">
