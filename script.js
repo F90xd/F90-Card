@@ -1900,6 +1900,195 @@ $("themeToggle").addEventListener(
 
 })();
 
+/* =========================================================
+   حاسبة التارجت ومكاسب الألعاب
+========================================================= */
+
+(function initTargetGameCalculator() {
+
+    const targetInput = document.getElementById("targetAmount");
+    const gameInput = document.getElementById("gameAmount");
+
+    const targetJod = document.getElementById("targetJodResult");
+    const targetUsd = document.getElementById("targetUsdResult");
+
+    const gameJod = document.getElementById("gameJodResult");
+    const gameUsd = document.getElementById("gameUsdResult");
+
+
+    if (
+        !targetInput ||
+        !gameInput ||
+        !targetJod ||
+        !targetUsd ||
+        !gameJod ||
+        !gameUsd
+    ) {
+        return;
+    }
+
+
+    /* =====================================================
+       أسعار التارجت
+       
+       كل 100,000 تارجت:
+       7 دينار
+       10 دولار
+    ===================================================== */
+
+    const TARGET_BASE = 100000;
+
+    const TARGET_JOD_RATE = 7;
+
+    const TARGET_USD_RATE = 10;
+
+
+    /* =====================================================
+       أسعار مكاسب الألعاب
+
+       كل 100,000 مكاسب ألعاب:
+       6 دينار
+       8 دولار
+    ===================================================== */
+
+    const GAME_BASE = 100000;
+
+    const GAME_JOD_RATE = 6;
+
+    const GAME_USD_RATE = 8;
+
+
+    /* =====================================================
+       تنسيق الأرقام
+    ===================================================== */
+
+    function formatNumber(value, decimals = 2) {
+
+        if (!Number.isFinite(value)) {
+            return "0.00";
+        }
+
+
+        return value.toLocaleString("en-US", {
+
+            minimumFractionDigits: decimals,
+
+            maximumFractionDigits: decimals
+
+        });
+
+    }
+
+
+    /* =====================================================
+       حساب التارجت
+    ===================================================== */
+
+    function calculateTarget() {
+
+        const amount =
+            parseFloat(targetInput.value);
+
+
+        if (
+            !Number.isFinite(amount) ||
+            amount < 0
+        ) {
+
+            targetJod.textContent = "0.00 د.أ";
+
+            targetUsd.textContent = "0.00 $";
+
+            return;
+        }
+
+
+        const jod =
+            (amount / TARGET_BASE) *
+            TARGET_JOD_RATE;
+
+
+        const usd =
+            (amount / TARGET_BASE) *
+            TARGET_USD_RATE;
+
+
+        targetJod.textContent =
+            formatNumber(jod) + " د.أ";
+
+
+        targetUsd.textContent =
+            formatNumber(usd) + " $";
+    }
+
+
+    /* =====================================================
+       حساب مكاسب الألعاب
+    ===================================================== */
+
+    function calculateGame() {
+
+        const amount =
+            parseFloat(gameInput.value);
+
+
+        if (
+            !Number.isFinite(amount) ||
+            amount < 0
+        ) {
+
+            gameJod.textContent = "0.00 د.أ";
+
+            gameUsd.textContent = "0.00 $";
+
+            return;
+        }
+
+
+        const jod =
+            (amount / GAME_BASE) *
+            GAME_JOD_RATE;
+
+
+        const usd =
+            (amount / GAME_BASE) *
+            GAME_USD_RATE;
+
+
+        gameJod.textContent =
+            formatNumber(jod) + " د.أ";
+
+
+        gameUsd.textContent =
+            formatNumber(usd) + " $";
+    }
+
+
+    /* =====================================================
+       تحديث مباشر أثناء الكتابة
+    ===================================================== */
+
+    targetInput.addEventListener(
+        "input",
+        calculateTarget
+    );
+
+
+    gameInput.addEventListener(
+        "input",
+        calculateGame
+    );
+
+
+    /* =====================================================
+       حساب أولي
+    ===================================================== */
+
+    calculateTarget();
+
+    calculateGame();
+
+})();
 
 /* =========================================================
    تشغيل
