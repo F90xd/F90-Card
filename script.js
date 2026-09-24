@@ -1,8 +1,12 @@
 "use strict";
 
 /* =========================================================
-مجلس القمة للشحن
-النسخة النهائية - إصلاح حسبة VIP
+   مجلس القمة للشحن
+   النسخة النهائية
+   - الانتقال الأول يدوي
+   - باقي الانتقالات تلقائية من جدول VIP
+   - التثبيت اختياري
+   - إجمالي الشحن = إجمالي VIP ÷ العرض
 ========================================================= */
 
 
@@ -162,6 +166,9 @@ STORAGE
 const STORAGE_KEY =
     "majlis_alqimma_vip_records_v5";
 
+const THEME_KEY =
+    "majlis_alqimma_theme";
+
 let historyRecords =
     loadHistory();
 
@@ -202,6 +209,7 @@ function numberValue(value) {
     return Number.isFinite(result)
         ? result
         : 0;
+
 }
 
 
@@ -218,19 +226,26 @@ function formatNumber(value, decimals = 0) {
             maximumFractionDigits: decimals
         }
     );
+
 }
 
 
 function formatCoins(value) {
 
-    return formatNumber(value, 0);
+    return formatNumber(
+        value,
+        0
+    );
 
 }
 
 
 function formatMoney(value) {
 
-    return formatNumber(value, 2);
+    return formatNumber(
+        value,
+        2
+    );
 
 }
 
@@ -307,35 +322,35 @@ function buildVipSelects() {
     VIP_TABLE.forEach(
         function (item) {
 
-            const optionCurrent =
+            const currentOption =
                 document.createElement(
                     "option"
                 );
 
-            optionCurrent.value =
+            currentOption.value =
                 item.level;
 
-            optionCurrent.textContent =
+            currentOption.textContent =
                 "VIP " + item.level;
 
             current.appendChild(
-                optionCurrent
+                currentOption
             );
 
 
-            const optionTarget =
+            const targetOption =
                 document.createElement(
                     "option"
                 );
 
-            optionTarget.value =
+            targetOption.value =
                 item.level;
 
-            optionTarget.textContent =
+            targetOption.textContent =
                 "VIP " + item.level;
 
             target.appendChild(
-                optionTarget
+                targetOption
             );
 
         }
@@ -431,19 +446,29 @@ function renderTransitions() {
     const area =
         byId("transitionList");
 
+    const currentElement =
+        byId("currentVip");
+
+    const targetElement =
+        byId("targetVip");
+
+    if (
+        !area ||
+        !currentElement ||
+        !targetElement
+    ) {
+        return;
+    }
+
     const current =
         Number(
-            byId("currentVip").value
+            currentElement.value
         );
 
     const target =
         Number(
-            byId("targetVip").value
+            targetElement.value
         );
-
-    if (!area) {
-        return;
-    }
 
     area.innerHTML = "";
 
@@ -470,6 +495,10 @@ function renderTransitions() {
         return;
     }
 
+
+    /* =====================================================
+       الانتقال الأول — يدوي
+    ===================================================== */
 
     const firstBox =
         document.createElement(
@@ -503,11 +532,16 @@ function renderTransitions() {
 
     `;
 
-    area.appendChild(firstBox);
+    area.appendChild(
+        firstBox
+    );
 
+
+    const firstInput =
+        byId("firstTransitionInput");
 
     cleanNumericInput(
-        byId("firstTransitionInput")
+        firstInput
     );
 
 
@@ -533,7 +567,9 @@ function renderTransitions() {
 
         `;
 
-        area.appendChild(title);
+        area.appendChild(
+            title
+        );
 
 
         for (
@@ -586,15 +622,14 @@ function renderTransitions() {
 
             `;
 
-            area.appendChild(box);
+            area.appendChild(
+                box
+            );
 
         }
 
     }
 
-
-    const firstInput =
-        byId("firstTransitionInput");
 
     if (firstInput) {
 
@@ -634,19 +669,48 @@ VIP CALCULATION
 
 function calculateVip() {
 
+    const currentElement =
+        byId("currentVip");
+
+    const targetElement =
+        byId("targetVip");
+
+    const multiplierElement =
+        byId("multiplier");
+
+    if (
+        !currentElement ||
+        !targetElement ||
+        !multiplierElement
+    ) {
+        return {
+            current: 0,
+            target: 0,
+            multiplier: 1,
+            reachPoints: 0,
+            lockPoints: 0,
+            totalVipPoints: 0,
+            actualCharge: 0,
+            supportNeeded: 0,
+            jodTotal: 0,
+            usdTotal: 0
+        };
+    }
+
+
     const current =
         Number(
-            byId("currentVip").value
+            currentElement.value
         );
 
     const target =
         Number(
-            byId("targetVip").value
+            targetElement.value
         );
 
     const multiplier =
         numberValue(
-            byId("multiplier").value
+            multiplierElement.value
         ) || 1;
 
 
@@ -658,14 +722,14 @@ function calculateVip() {
 
 
     /* =====================================================
-       الوصول إلى المستوى المطلوب
+       الوصول
     ===================================================== */
 
     if (target > current) {
 
         /*
         الانتقال الأول:
-        القيمة التي يدخلها المستخدم يدوياً.
+        القيمة الحقيقية المتبقية التي يدخلها المستخدم.
         */
 
         reachPoints +=
@@ -674,7 +738,7 @@ function calculateVip() {
 
         /*
         باقي الانتقالات:
-        تحسب تلقائياً من جدول VIP.
+        من جدول VIP بشكل تلقائي.
         */
 
         for (
@@ -771,13 +835,8 @@ function calculateVip() {
 
 
     /*
-    مهم جداً:
-
-    نقاط VIP ÷ العرض = شحن الوكيل
-
-    وليس × العرض.
-
-    هذا هو الإصلاح الأساسي.
+    إجمالي شحن الوكيل:
+    إجمالي نقاط VIP ÷ العرض
     */
 
     const actualCharge =
@@ -842,11 +901,7 @@ function calculateVip() {
     }
 
 
-    /* =====================================================
-       UPDATE
-    ===================================================== */
-
-    updateVipResult({
+    const result = {
 
         current,
         target,
@@ -864,26 +919,15 @@ function calculateVip() {
 
         supportRate
 
-    });
-
-
-    return {
-
-        current,
-        target,
-        multiplier,
-
-        reachPoints,
-        lockPoints,
-        totalVipPoints,
-
-        actualCharge,
-        supportNeeded,
-
-        jodTotal,
-        usdTotal
-
     };
+
+
+    updateVipResult(
+        result
+    );
+
+
+    return result;
 
 }
 
@@ -894,76 +938,175 @@ VIP RESULT
 
 function updateVipResult(data) {
 
-    byId("resultTitle").textContent =
-        `VIP ${data.current} → VIP ${data.target}`;
+    const resultTitle =
+        byId("resultTitle");
+
+    const resultMultiplier =
+        byId("resultMultiplier");
+
+    const actualCharge =
+        byId("actualCharge");
+
+    const reachPoints =
+        byId("reachPoints");
+
+    const lockPoints =
+        byId("lockPoints");
+
+    const totalVipPoints =
+        byId("totalVipPoints");
+
+    const supportNeeded =
+        byId("supportNeeded");
+
+    const jodTotal =
+        byId("jodTotal");
+
+    const usdTotal =
+        byId("usdTotal");
+
+    const formulaReach =
+        byId("formulaReach");
+
+    const formulaLock =
+        byId("formulaLock");
+
+    const formulaVip =
+        byId("formulaVip");
+
+    const formulaMultiplier =
+        byId("formulaMultiplier");
+
+    const formulaSupport =
+        byId("formulaSupport");
 
 
-    byId("resultMultiplier").textContent =
-        `×${data.multiplier}`;
+    if (resultTitle) {
+
+        resultTitle.textContent =
+            `VIP ${data.current} → VIP ${data.target}`;
+
+    }
 
 
-    byId("actualCharge").textContent =
-        formatCoins(
-            data.actualCharge
-        );
+    if (resultMultiplier) {
+
+        resultMultiplier.textContent =
+            `×${data.multiplier}`;
+
+    }
 
 
-    byId("reachPoints").textContent =
-        formatCoins(
-            data.reachPoints
-        );
+    if (actualCharge) {
+
+        actualCharge.textContent =
+            formatCoins(
+                data.actualCharge
+            );
+
+    }
 
 
-    byId("lockPoints").textContent =
-        formatCoins(
-            data.lockPoints
-        );
+    if (reachPoints) {
+
+        reachPoints.textContent =
+            formatCoins(
+                data.reachPoints
+            );
+
+    }
 
 
-    byId("totalVipPoints").textContent =
-        formatCoins(
-            data.totalVipPoints
-        );
+    if (lockPoints) {
+
+        lockPoints.textContent =
+            formatCoins(
+                data.lockPoints
+            );
+
+    }
 
 
-    byId("supportNeeded").textContent =
-        formatCoins(
-            data.supportNeeded
-        );
+    if (totalVipPoints) {
+
+        totalVipPoints.textContent =
+            formatCoins(
+                data.totalVipPoints
+            );
+
+    }
 
 
-    byId("jodTotal").textContent =
-        `${formatMoney(data.jodTotal)} د.أ`;
+    if (supportNeeded) {
+
+        supportNeeded.textContent =
+            formatCoins(
+                data.supportNeeded
+            );
+
+    }
 
 
-    byId("usdTotal").textContent =
-        `${formatMoney(data.usdTotal)} $`;
+    if (jodTotal) {
+
+        jodTotal.textContent =
+            `${formatMoney(data.jodTotal)} د.أ`;
+
+    }
 
 
-    byId("formulaReach").textContent =
-        formatCoins(
-            data.reachPoints
-        );
+    if (usdTotal) {
+
+        usdTotal.textContent =
+            `${formatMoney(data.usdTotal)} $`;
+
+    }
 
 
-    byId("formulaLock").textContent =
-        formatCoins(
-            data.lockPoints
-        );
+    if (formulaReach) {
+
+        formulaReach.textContent =
+            formatCoins(
+                data.reachPoints
+            );
+
+    }
 
 
-    byId("formulaVip").textContent =
-        formatCoins(
-            data.totalVipPoints
-        );
+    if (formulaLock) {
+
+        formulaLock.textContent =
+            formatCoins(
+                data.lockPoints
+            );
+
+    }
 
 
-    byId("formulaMultiplier").textContent =
-        `×${data.multiplier}`;
+    if (formulaVip) {
+
+        formulaVip.textContent =
+            formatCoins(
+                data.totalVipPoints
+            );
+
+    }
 
 
-    byId("formulaSupport").textContent =
-        `${formatCoins(data.actualCharge)} ÷ 1,000,000 × ${formatCoins(data.supportRate)} = ${formatCoins(data.supportNeeded)}`;
+    if (formulaMultiplier) {
+
+        formulaMultiplier.textContent =
+            `×${data.multiplier}`;
+
+    }
+
+
+    if (formulaSupport) {
+
+        formulaSupport.textContent =
+            `${formatCoins(data.actualCharge)} ÷ 1,000,000 × ${formatCoins(data.supportRate)} = ${formatCoins(data.supportNeeded)}`;
+
+    }
 
 
     const autoLock =
@@ -1011,6 +1154,10 @@ function updateMode() {
             'input[name="mode"]:checked'
         );
 
+    if (!selected) {
+        return;
+    }
+
 
     const reachLabel =
         byId("reachModeLabel");
@@ -1025,11 +1172,6 @@ function updateMode() {
         byId("targetLockBox");
 
 
-    if (!selected) {
-        return;
-    }
-
-
     if (selected.value === "reach") {
 
         reachLabel.classList.add(
@@ -1040,11 +1182,9 @@ function updateMode() {
             "active"
         );
 
-
         transitionArea.classList.remove(
             "hidden"
         );
-
 
         lockBox.classList.remove(
             "hidden"
@@ -1060,11 +1200,9 @@ function updateMode() {
             "active"
         );
 
-
         transitionArea.classList.add(
             "hidden"
         );
-
 
         lockBox.classList.add(
             "hidden"
@@ -1213,17 +1351,6 @@ if (lockCheckbox) {
 
 
 /* =========================================================
-INITIAL VIP
-========================================================= */
-
-renderTransitions();
-
-updateMode();
-
-calculateVip();
-
-
-/* =========================================================
 STORAGE
 ========================================================= */
 
@@ -1235,7 +1362,6 @@ function loadHistory() {
             localStorage.getItem(
                 STORAGE_KEY
             );
-
 
         if (!saved) {
             return [];
@@ -1261,10 +1387,21 @@ function loadHistory() {
 
 function saveHistory() {
 
-    localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(historyRecords)
-    );
+    try {
+
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(historyRecords)
+        );
+
+    } catch (error) {
+
+        console.error(
+            "تعذر حفظ السجل:",
+            error
+        );
+
+    }
 
 }
 
@@ -1375,11 +1512,17 @@ function saveCurrentOperation() {
 }
 
 
-byId("saveBtn")
-    .addEventListener(
+const saveButton =
+    byId("saveBtn");
+
+if (saveButton) {
+
+    saveButton.addEventListener(
         "click",
         saveCurrentOperation
     );
+
+}
 
 
 /* =========================================================
@@ -1391,10 +1534,16 @@ function renderHistory() {
     const container =
         byId("history");
 
+    const searchInput =
+        byId("historySearch");
+
+    if (!container || !searchInput) {
+        return;
+    }
+
 
     const search =
-        byId("historySearch")
-            .value
+        searchInput.value
             .trim()
             .toLowerCase();
 
@@ -1469,13 +1618,17 @@ function renderHistory() {
 
 
             const dateText =
-                date.toLocaleString(
-                    "ar",
-                    {
-                        dateStyle: "medium",
-                        timeStyle: "short"
-                    }
-                );
+                Number.isNaN(
+                    date.getTime()
+                )
+                    ? "-"
+                    : date.toLocaleString(
+                        "ar",
+                        {
+                            dateStyle: "medium",
+                            timeStyle: "short"
+                        }
+                    );
 
 
             item.innerHTML = `
@@ -1519,7 +1672,7 @@ function renderHistory() {
 
                     <button
                         type="button"
-                        data-load="${record.id}"
+                        data-load="${escapeHtml(record.id)}"
                     >
                         استرجاع
                     </button>
@@ -1527,7 +1680,7 @@ function renderHistory() {
                     <button
                         type="button"
                         class="delete"
-                        data-delete="${record.id}"
+                        data-delete="${escapeHtml(record.id)}"
                     >
                         حذف
                     </button>
@@ -1537,7 +1690,9 @@ function renderHistory() {
             `;
 
 
-            container.appendChild(item);
+            container.appendChild(
+                item
+            );
 
         }
     );
@@ -1548,27 +1703,49 @@ function renderHistory() {
 function escapeHtml(value) {
 
     return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
 
 }
 
 
-renderHistory();
+const historySearch =
+    byId("historySearch");
 
+if (historySearch) {
 
-byId("historySearch")
-    .addEventListener(
+    historySearch.addEventListener(
         "input",
         renderHistory
     );
 
+}
 
-byId("history")
-    .addEventListener(
+
+const historyContainer =
+    byId("history");
+
+if (historyContainer) {
+
+    historyContainer.addEventListener(
         "click",
         function (event) {
 
@@ -1590,6 +1767,8 @@ byId("history")
                     loadButton.dataset.load
                 );
 
+                return;
+
             }
 
 
@@ -1604,6 +1783,8 @@ byId("history")
         }
     );
 
+}
+
 
 /* =========================================================
 LOAD RECORD
@@ -1615,7 +1796,8 @@ function loadRecord(id) {
         historyRecords.find(
             function (item) {
 
-                return item.id === id;
+                return String(item.id) ===
+                    String(id);
 
             }
         );
@@ -1683,7 +1865,8 @@ function deleteRecord(id) {
         historyRecords.filter(
             function (item) {
 
-                return item.id !== id;
+                return String(item.id) !==
+                    String(id);
 
             }
         );
@@ -1702,8 +1885,12 @@ function deleteRecord(id) {
 CLEAR HISTORY
 ========================================================= */
 
-byId("clearHistory")
-    .addEventListener(
+const clearHistory =
+    byId("clearHistory");
+
+if (clearHistory) {
+
+    clearHistory.addEventListener(
         "click",
         function () {
 
@@ -1734,13 +1921,19 @@ byId("clearHistory")
         }
     );
 
+}
+
 
 /* =========================================================
 NEW OPERATION
 ========================================================= */
 
-byId("newBtn")
-    .addEventListener(
+const newButton =
+    byId("newBtn");
+
+if (newButton) {
+
+    newButton.addEventListener(
         "click",
         function () {
 
@@ -1775,13 +1968,16 @@ byId("newBtn")
                 "15";
 
 
-            byId("enableTargetLock").checked =
-                false;
+            const lock =
+                byId("enableTargetLock");
+
+            if (lock) {
+                lock.checked = false;
+            }
 
 
             byId("targetInput").value =
                 "";
-
 
             byId("gamesInput").value =
                 "";
@@ -1810,6 +2006,8 @@ byId("newBtn")
 
         }
     );
+
+}
 
 
 /* =========================================================
@@ -1938,50 +2136,50 @@ function renderStats() {
     );
 
 
-    byId("statOperations").textContent =
-        formatNumber(
-            operations
-        );
+    const elements = {
+
+        statOperations:
+            formatNumber(operations),
+
+        statCustomers:
+            formatNumber(customers),
+
+        statCharge:
+            formatCoins(charge),
+
+        statSupport:
+            formatCoins(support),
+
+        statVipPoints:
+            formatCoins(vipPoints),
+
+        statJod:
+            formatMoney(jod),
+
+        statUsd:
+            formatMoney(usd),
+
+        statHighestVip:
+            `VIP ${highest}`
+
+    };
 
 
-    byId("statCustomers").textContent =
-        formatNumber(
-            customers
-        );
+    Object.keys(elements).forEach(
+        function (id) {
 
+            const element =
+                byId(id);
 
-    byId("statCharge").textContent =
-        formatCoins(
-            charge
-        );
+            if (element) {
 
+                element.textContent =
+                    elements[id];
 
-    byId("statSupport").textContent =
-        formatCoins(
-            support
-        );
+            }
 
-
-    byId("statVipPoints").textContent =
-        formatCoins(
-            vipPoints
-        );
-
-
-    byId("statJod").textContent =
-        formatMoney(
-            jod
-        );
-
-
-    byId("statUsd").textContent =
-        formatMoney(
-            usd
-        );
-
-
-    byId("statHighestVip").textContent =
-        `VIP ${highest}`;
+        }
+    );
 
 }
 
@@ -1993,17 +2191,25 @@ renderStats();
 STATS TOGGLE
 ========================================================= */
 
-byId("statsToggle")
-    .addEventListener(
+const statsToggle =
+    byId("statsToggle");
+
+if (statsToggle) {
+
+    statsToggle.addEventListener(
         "click",
         function () {
 
             const panel =
                 byId("statsPanel");
 
-
             const arrow =
                 byId("statsArrow");
+
+
+            if (!panel) {
+                return;
+            }
 
 
             panel.classList.toggle(
@@ -2017,29 +2223,35 @@ byId("statsToggle")
                 )
             ) {
 
-                arrow.textContent =
-                    "⌄";
+                if (arrow) {
+                    arrow.textContent =
+                        "⌄";
+                }
 
             } else {
 
-                arrow.textContent =
-                    "⌃";
+                if (arrow) {
+                    arrow.textContent =
+                        "⌃";
+                }
 
             }
 
         }
     );
 
+}
+
 
 /* =========================================================
 THEME
 ========================================================= */
 
-const THEME_KEY =
-    "majlis_alqimma_theme";
-
-
 function applyTheme(theme) {
+
+    const themeButton =
+        byId("themeToggle");
+
 
     if (theme === "light") {
 
@@ -2048,8 +2260,12 @@ function applyTheme(theme) {
         );
 
 
-        byId("themeToggle").textContent =
-            "☀";
+        if (themeButton) {
+
+            themeButton.textContent =
+                "☀";
+
+        }
 
     } else {
 
@@ -2058,8 +2274,12 @@ function applyTheme(theme) {
         );
 
 
-        byId("themeToggle").textContent =
-            "☾";
+        if (themeButton) {
+
+            themeButton.textContent =
+                "☾";
+
+        }
 
     }
 
@@ -2077,8 +2297,12 @@ applyTheme(
 );
 
 
-byId("themeToggle")
-    .addEventListener(
+const themeToggle =
+    byId("themeToggle");
+
+if (themeToggle) {
+
+    themeToggle.addEventListener(
         "click",
         function () {
 
@@ -2107,9 +2331,11 @@ byId("themeToggle")
         }
     );
 
+}
+
 
 /* =========================================================
-TARGET CALCULATOR
+TARGET / GAMES CALCULATOR
 ========================================================= */
 
 const TARGET_JOD_RATE =
@@ -2130,6 +2356,10 @@ function calculateTargetCalculator() {
     const input =
         byId("targetInput");
 
+    if (!input) {
+        return;
+    }
+
 
     const value =
         numberValue(
@@ -2147,12 +2377,27 @@ function calculateTargetCalculator() {
         TARGET_USD_RATE;
 
 
-    byId("targetJod").textContent =
-        formatMoney(jod);
+    const targetJod =
+        byId("targetJod");
+
+    const targetUsd =
+        byId("targetUsd");
 
 
-    byId("targetUsd").textContent =
-        formatMoney(usd);
+    if (targetJod) {
+
+        targetJod.textContent =
+            formatMoney(jod);
+
+    }
+
+
+    if (targetUsd) {
+
+        targetUsd.textContent =
+            formatMoney(usd);
+
+    }
 
 }
 
@@ -2161,6 +2406,10 @@ function calculateGamesCalculator() {
 
     const input =
         byId("gamesInput");
+
+    if (!input) {
+        return;
+    }
 
 
     const value =
@@ -2179,28 +2428,55 @@ function calculateGamesCalculator() {
         GAMES_USD_RATE;
 
 
-    byId("gamesJod").textContent =
-        formatMoney(jod);
+    const gamesJod =
+        byId("gamesJod");
+
+    const gamesUsd =
+        byId("gamesUsd");
 
 
-    byId("gamesUsd").textContent =
-        formatMoney(usd);
+    if (gamesJod) {
+
+        gamesJod.textContent =
+            formatMoney(jod);
+
+    }
+
+
+    if (gamesUsd) {
+
+        gamesUsd.textContent =
+            formatMoney(usd);
+
+    }
 
 }
 
 
-byId("targetInput")
-    .addEventListener(
+const targetInput =
+    byId("targetInput");
+
+if (targetInput) {
+
+    targetInput.addEventListener(
         "input",
         calculateTargetCalculator
     );
 
+}
 
-byId("gamesInput")
-    .addEventListener(
+
+const gamesInput =
+    byId("gamesInput");
+
+if (gamesInput) {
+
+    gamesInput.addEventListener(
         "input",
         calculateGamesCalculator
     );
+
+}
 
 
 calculateTargetCalculator();
@@ -2332,8 +2608,12 @@ document
 CALCULATE BUTTON
 ========================================================= */
 
-byId("calculateBtn")
-    .addEventListener(
+const calculateButton =
+    byId("calculateBtn");
+
+if (calculateButton) {
+
+    calculateButton.addEventListener(
         "click",
         function () {
 
@@ -2351,87 +2631,123 @@ byId("calculateBtn")
         }
     );
 
+}
+
 
 /* =========================================================
 CLIENT INPUT
 ========================================================= */
 
-byId("clientName")
-    .addEventListener(
+const clientName =
+    byId("clientName");
+
+if (clientName) {
+
+    clientName.addEventListener(
         "input",
         function () {
 
-            byId("clientStatus")
-                .classList.add(
+            const status =
+                byId("clientStatus");
+
+            if (status) {
+
+                status.classList.add(
                     "hidden"
                 );
+
+            }
 
         }
     );
 
+}
 
-byId("clientId")
-    .addEventListener(
+
+const clientId =
+    byId("clientId");
+
+if (clientId) {
+
+    clientId.addEventListener(
         "input",
         function () {
 
-            byId("clientStatus")
-                .classList.add(
+            const status =
+                byId("clientStatus");
+
+            if (status) {
+
+                status.classList.add(
                     "hidden"
                 );
+
+            }
 
         }
     );
 
+}
+
 
 /* =========================================================
-FINAL
+COLLAPSIBLE SECTIONS
 ========================================================= */
 
-calculateVip();
+function setupCollapsibleSection(
+    toggleId,
+    contentId
+) {
 
-renderHistory();
+    const toggle =
+        byId(toggleId);
 
-renderStats();
+    const content =
+        byId(contentId);
 
-renderStats();
-
-/* =========================================================
-   COLLAPSIBLE CLIENT + HISTORY SECTIONS
-========================================================= */
-
-function setupCollapsibleSection(toggleId, contentId) {
-
-    const toggle = byId(toggleId);
-    const content = byId(contentId);
 
     if (!toggle || !content) {
         return;
     }
 
-    toggle.addEventListener("click", function () {
 
-        const isHidden =
-            content.classList.contains("hidden");
+    toggle.addEventListener(
+        "click",
+        function () {
 
-        if (isHidden) {
+            const isHidden =
+                content.classList.contains(
+                    "hidden"
+                );
 
-            content.classList.remove("hidden");
-            toggle.classList.add("open");
 
-        } else {
+            if (isHidden) {
 
-            content.classList.add("hidden");
-            toggle.classList.remove("open");
+                content.classList.remove(
+                    "hidden"
+                );
+
+                toggle.classList.add(
+                    "open"
+                );
+
+            } else {
+
+                content.classList.add(
+                    "hidden"
+                );
+
+                toggle.classList.remove(
+                    "open"
+                );
+
+            }
 
         }
-
-    });
+    );
 
 }
 
-
-/* بيانات العميل */
 
 setupCollapsibleSection(
     "clientToggle",
@@ -2439,9 +2755,24 @@ setupCollapsibleSection(
 );
 
 
-/* سجل العملاء والعمليات */
-
 setupCollapsibleSection(
     "historyToggle",
     "historySectionContent"
 );
+
+
+/* =========================================================
+INITIAL
+========================================================= */
+
+renderTransitions();
+
+updateMode();
+
+updateLock();
+
+calculateVip();
+
+renderHistory();
+
+renderStats();
